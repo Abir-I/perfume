@@ -1,8 +1,4 @@
--- ============================================================
---  PERFUME RETAIL & DECANTING PLATFORM — DATABASE SCHEMA
---  MySQL 8.0+
---  Generated: June 2026
--- ============================================================
+
 
 DROP DATABASE IF EXISTS perfume_platform;
 CREATE DATABASE perfume_platform
@@ -11,18 +7,14 @@ CREATE DATABASE perfume_platform
 
 USE perfume_platform;
 
--- ============================================================
--- 1. ROLE
--- ============================================================
+
 CREATE TABLE role (
     role_id     INT           NOT NULL AUTO_INCREMENT,
     role_name   VARCHAR(50)   NOT NULL UNIQUE,        -- 'admin', 'customer'
     PRIMARY KEY (role_id)
 );
 
--- ============================================================
--- 2. USER
--- ============================================================
+
 CREATE TABLE user (
     user_id       INT            NOT NULL AUTO_INCREMENT,
     role_id       INT            NOT NULL,
@@ -37,9 +29,7 @@ CREATE TABLE user (
     CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
 
--- ============================================================
--- 3. ADDRESS
--- ============================================================
+
 CREATE TABLE address (
     address_id    INT           NOT NULL AUTO_INCREMENT,
     user_id       INT           NOT NULL,
@@ -55,9 +45,7 @@ CREATE TABLE address (
         ON DELETE CASCADE
 );
 
--- ============================================================
--- 4. BRAND
--- ============================================================
+
 CREATE TABLE brand (
     brand_id          INT           NOT NULL AUTO_INCREMENT,
     brand_name        VARCHAR(150)  NOT NULL UNIQUE,
@@ -66,9 +54,6 @@ CREATE TABLE brand (
     PRIMARY KEY (brand_id)
 );
 
--- ============================================================
--- 5. PERFUME
--- ============================================================
 CREATE TABLE perfume (
     perfume_id         INT           NOT NULL AUTO_INCREMENT,
     brand_id           INT           NOT NULL,
@@ -88,9 +73,6 @@ CREATE TABLE perfume (
     CONSTRAINT fk_perfume_brand FOREIGN KEY (brand_id) REFERENCES brand(brand_id)
 );
 
--- ============================================================
--- 6. BULK_BOTTLE  (inventory of original bottles purchased)
--- ============================================================
 CREATE TABLE bulk_bottle (
     bottle_id             INT             NOT NULL AUTO_INCREMENT,
     perfume_id            INT             NOT NULL,
@@ -107,9 +89,7 @@ CREATE TABLE bulk_bottle (
     CONSTRAINT chk_ml_remaining CHECK (ml_remaining >= 0)
 );
 
--- ============================================================
--- 7. PRODUCT  (what appears in the store — full bottle OR decant)
--- ============================================================
+
 CREATE TABLE product (
     product_id     INT             NOT NULL AUTO_INCREMENT,
     perfume_id     INT             NOT NULL,
@@ -125,9 +105,6 @@ CREATE TABLE product (
     CONSTRAINT chk_price CHECK (price > 0)
 );
 
--- ============================================================
--- 8. DECANT_BATCH  (traceability: which bottle → which product)
--- ============================================================
 CREATE TABLE decant_batch (
     decant_batch_id  INT       NOT NULL AUTO_INCREMENT,
     bottle_id        INT       NOT NULL,
@@ -144,9 +121,6 @@ CREATE TABLE decant_batch (
     CONSTRAINT chk_qty_sold CHECK (quantity_sold <= quantity_created)
 );
 
--- ============================================================
--- 9. CART
--- ============================================================
 CREATE TABLE cart (
     cart_id    INT      NOT NULL AUTO_INCREMENT,
     user_id    INT      NOT NULL UNIQUE,
@@ -157,9 +131,7 @@ CREATE TABLE cart (
         ON DELETE CASCADE
 );
 
--- ============================================================
--- 10. CART_ITEM
--- ============================================================
+
 CREATE TABLE cart_item (
     cart_item_id INT      NOT NULL AUTO_INCREMENT,
     cart_id      INT      NOT NULL,
@@ -173,9 +145,7 @@ CREATE TABLE cart_item (
     CONSTRAINT chk_cart_qty CHECK (quantity > 0)
 );
 
--- ============================================================
--- 11. ORDER
--- ============================================================
+
 CREATE TABLE `order` (
     order_id      INT             NOT NULL AUTO_INCREMENT,
     user_id       INT             NOT NULL,
@@ -190,9 +160,7 @@ CREATE TABLE `order` (
     CONSTRAINT fk_order_address FOREIGN KEY (address_id) REFERENCES address(address_id)
 );
 
--- ============================================================
--- 12. ORDER_ITEM
--- ============================================================
+
 CREATE TABLE order_item (
     order_item_id INT            NOT NULL AUTO_INCREMENT,
     order_id      INT            NOT NULL,
@@ -206,9 +174,7 @@ CREATE TABLE order_item (
     CONSTRAINT chk_order_qty CHECK (quantity > 0)
 );
 
--- ============================================================
--- 13. PAYMENT
--- ============================================================
+
 CREATE TABLE payment (
     payment_id     INT             NOT NULL AUTO_INCREMENT,
     order_id       INT             NOT NULL UNIQUE,
@@ -221,9 +187,7 @@ CREATE TABLE payment (
     CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES `order`(order_id)
 );
 
--- ============================================================
--- 14. INVOICE
--- ============================================================
+
 CREATE TABLE invoice (
     invoice_id     INT             NOT NULL AUTO_INCREMENT,
     order_id       INT             NOT NULL UNIQUE,
@@ -236,9 +200,7 @@ CREATE TABLE invoice (
     CONSTRAINT fk_invoice_order FOREIGN KEY (order_id) REFERENCES `order`(order_id)
 );
 
--- ============================================================
--- 15. REVIEW
--- ============================================================
+
 CREATE TABLE review (
     review_id           INT       NOT NULL AUTO_INCREMENT,
     user_id             INT       NOT NULL,
@@ -254,9 +216,7 @@ CREATE TABLE review (
     CONSTRAINT chk_rating CHECK (rating BETWEEN 1 AND 5)
 );
 
--- ============================================================
--- 16. CHATBOT_LOG
--- ============================================================
+
 CREATE TABLE chatbot_log (
     log_id       INT          NOT NULL AUTO_INCREMENT,
     user_id      INT,                                  -- nullable: guest users
@@ -269,9 +229,7 @@ CREATE TABLE chatbot_log (
         ON DELETE SET NULL
 );
 
--- ============================================================
--- INDEXES  (for performance on common query patterns)
--- ============================================================
+
 CREATE INDEX idx_perfume_brand        ON perfume(brand_id);
 CREATE INDEX idx_product_perfume      ON product(perfume_id);
 CREATE INDEX idx_product_type         ON product(product_type);
@@ -285,9 +243,7 @@ CREATE INDEX idx_review_product       ON review(product_id);
 CREATE INDEX idx_chatlog_session      ON chatbot_log(session_id);
 CREATE INDEX idx_chatlog_user         ON chatbot_log(user_id);
 
--- ============================================================
--- VIEWS
--- ============================================================
+
 
 -- Full product details with perfume & brand info
 CREATE VIEW vw_product_catalog AS
@@ -367,9 +323,7 @@ SELECT
 FROM review
 GROUP BY product_id;
 
--- ============================================================
--- SAMPLE DATA
--- ============================================================
+
 
 -- Roles
 INSERT INTO role (role_name) VALUES ('admin'), ('customer');
@@ -485,6 +439,4 @@ INSERT INTO chatbot_log (user_id, session_id, user_message, bot_response) VALUES
 (NULL, 'sess-xyz-002', 'Do you have Dior Sauvage decants?',
        'Yes! We currently have Dior Sauvage EDP available in 5ml and 10ml decants. Would you like to add one to your cart?');
 
--- ============================================================
--- END OF SCHEMA
--- ============================================================
+
