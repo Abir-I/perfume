@@ -1,8 +1,6 @@
 from rest_framework import serializers
 
-# Brand / Perfume / Product live in accounts/models.py in this project,
-# so we import from there instead of redefining them (redefining would
-# create a second Model class mapped to the same MySQL table).
+
 from accounts.models import Brand, Product
 
 
