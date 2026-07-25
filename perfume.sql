@@ -29,7 +29,6 @@ CREATE TABLE user (
     CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
 
-
 CREATE TABLE address (
     address_id    INT           NOT NULL AUTO_INCREMENT,
     user_id       INT           NOT NULL,
@@ -54,6 +53,7 @@ CREATE TABLE brand (
     PRIMARY KEY (brand_id)
 );
 
+
 CREATE TABLE perfume (
     perfume_id         INT           NOT NULL AUTO_INCREMENT,
     brand_id           INT           NOT NULL,
@@ -73,13 +73,14 @@ CREATE TABLE perfume (
     CONSTRAINT fk_perfume_brand FOREIGN KEY (brand_id) REFERENCES brand(brand_id)
 );
 
+
 CREATE TABLE bulk_bottle (
     bottle_id             INT             NOT NULL AUTO_INCREMENT,
     perfume_id            INT             NOT NULL,
     batch_number          VARCHAR(100)    NOT NULL UNIQUE,
     purchase_date         DATE            NOT NULL,
-    bottle_size_ml        DECIMAL(8,2)    NOT NULL,   -- e.g. 100.00
-    ml_remaining          DECIMAL(8,2)    NOT NULL,   -- tracks usage
+    bottle_size_ml        DECIMAL(8,2)    NOT NULL,
+    ml_remaining          DECIMAL(8,2)    NOT NULL,
     cost_price            DECIMAL(10,2)   NOT NULL,
     supplier_name         VARCHAR(200),
     authenticity_verified TINYINT(1)      NOT NULL DEFAULT 0,
@@ -94,7 +95,7 @@ CREATE TABLE product (
     product_id     INT             NOT NULL AUTO_INCREMENT,
     perfume_id     INT             NOT NULL,
     product_type   ENUM('full_bottle','decant') NOT NULL,
-    volume_ml      DECIMAL(8,2)    NOT NULL,          -- 5, 10, 20, 100, etc.
+    volume_ml      DECIMAL(8,2)    NOT NULL,
     price          DECIMAL(10,2)   NOT NULL,
     stock_quantity INT             NOT NULL DEFAULT 0,
     is_active      TINYINT(1)      NOT NULL DEFAULT 1,
@@ -104,6 +105,7 @@ CREATE TABLE product (
     CONSTRAINT chk_stock CHECK (stock_quantity >= 0),
     CONSTRAINT chk_price CHECK (price > 0)
 );
+
 
 CREATE TABLE decant_batch (
     decant_batch_id  INT       NOT NULL AUTO_INCREMENT,
@@ -120,6 +122,7 @@ CREATE TABLE decant_batch (
     CONSTRAINT fk_decant_user    FOREIGN KEY (created_by) REFERENCES user(user_id),
     CONSTRAINT chk_qty_sold CHECK (quantity_sold <= quantity_created)
 );
+
 
 CREATE TABLE cart (
     cart_id    INT      NOT NULL AUTO_INCREMENT,
@@ -146,7 +149,7 @@ CREATE TABLE cart_item (
 );
 
 
-CREATE TABLE `order` (
+CREATE TABLE customer_order (
     order_id      INT             NOT NULL AUTO_INCREMENT,
     user_id       INT             NOT NULL,
     address_id    INT             NOT NULL,
@@ -169,7 +172,7 @@ CREATE TABLE order_item (
     unit_price    DECIMAL(10,2)  NOT NULL,
     subtotal      DECIMAL(12,2)  GENERATED ALWAYS AS (quantity * unit_price) STORED,
     PRIMARY KEY (order_item_id),
-    CONSTRAINT fk_orderitem_order   FOREIGN KEY (order_id)   REFERENCES `order`(order_id),
+    CONSTRAINT fk_orderitem_order   FOREIGN KEY (order_id)   REFERENCES customer_order(order_id),
     CONSTRAINT fk_orderitem_product FOREIGN KEY (product_id) REFERENCES product(product_id),
     CONSTRAINT chk_order_qty CHECK (quantity > 0)
 );
@@ -184,7 +187,7 @@ CREATE TABLE payment (
     transaction_id VARCHAR(200),
     status         ENUM('Pending','Completed','Failed','Refunded') NOT NULL DEFAULT 'Pending',
     PRIMARY KEY (payment_id),
-    CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES `order`(order_id)
+    CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES customer_order(order_id)
 );
 
 
@@ -197,17 +200,17 @@ CREATE TABLE invoice (
     tax_amount     DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
     status         ENUM('Draft','Issued','Paid','Cancelled') NOT NULL DEFAULT 'Issued',
     PRIMARY KEY (invoice_id),
-    CONSTRAINT fk_invoice_order FOREIGN KEY (order_id) REFERENCES `order`(order_id)
+    CONSTRAINT fk_invoice_order FOREIGN KEY (order_id) REFERENCES customer_order(order_id)
 );
 
 
 CREATE TABLE review (
-    review_id           INT       NOT NULL AUTO_INCREMENT,
-    user_id             INT       NOT NULL,
-    product_id          INT       NOT NULL,
-    rating              TINYINT   NOT NULL,
-    comment             TEXT,
-    created_at          DATETIME  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    review_id            INT       NOT NULL AUTO_INCREMENT,
+    user_id              INT       NOT NULL,
+    product_id           INT       NOT NULL,
+    rating               TINYINT   NOT NULL,
+    comment              TEXT,
+    created_at           DATETIME  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_verified_purchase TINYINT(1) NOT NULL DEFAULT 0,
     UNIQUE KEY uq_user_product_review (user_id, product_id),
     PRIMARY KEY (review_id),
@@ -230,22 +233,96 @@ CREATE TABLE chatbot_log (
 );
 
 
+CREATE TABLE faq (
+    faq_id      INT           NOT NULL AUTO_INCREMENT,
+    category    VARCHAR(100)  NOT NULL,        -- e.g. 'Shipping', 'Authenticity', 'Returns'
+    question    VARCHAR(500)  NOT NULL,
+    answer      TEXT          NOT NULL,
+    is_active   TINYINT(1)    NOT NULL DEFAULT 1,
+    created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (faq_id)
+);
+
+
+CREATE TABLE password_reset_token (
+    token_id    INT           NOT NULL AUTO_INCREMENT,
+    user_id     INT           NOT NULL,
+    token_hash  VARCHAR(255)  NOT NULL UNIQUE,   -- store a hash of the token, never the raw token
+    expires_at  DATETIME      NOT NULL,
+    used_at     DATETIME      NULL,              -- NULL until consumed; prevents token reuse
+    created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (token_id),
+    CONSTRAINT fk_resettoken_user FOREIGN KEY (user_id) REFERENCES user(user_id)
+        ON DELETE CASCADE
+);
+
+
+CREATE TABLE login_attempt (
+    attempt_id    INT           NOT NULL AUTO_INCREMENT,
+    user_id       INT           NULL,             -- nullable: email may not match any user
+    email_used    VARCHAR(255)  NOT NULL,
+    ip_address    VARCHAR(45)   NOT NULL,          -- supports IPv4 and IPv6
+    was_successful TINYINT(1)   NOT NULL,
+    attempted_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (attempt_id),
+    CONSTRAINT fk_loginattempt_user FOREIGN KEY (user_id) REFERENCES user(user_id)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE audit_log (
+    audit_id      INT           NOT NULL AUTO_INCREMENT,
+    user_id       INT           NULL,             -- who performed the action (nullable if system-triggered)
+    action_type   VARCHAR(100)  NOT NULL,         -- e.g. 'CREATE_DECANT', 'UPDATE_PRICE', 'DELETE_PRODUCT'
+    table_affected VARCHAR(100) NOT NULL,
+    record_id     INT,
+    old_value     TEXT,
+    new_value     TEXT,
+    performed_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (audit_id),
+    CONSTRAINT fk_auditlog_user FOREIGN KEY (user_id) REFERENCES user(user_id)
+        ON DELETE SET NULL
+);
+
+
 CREATE INDEX idx_perfume_brand        ON perfume(brand_id);
 CREATE INDEX idx_product_perfume      ON product(perfume_id);
 CREATE INDEX idx_product_type         ON product(product_type);
 CREATE INDEX idx_bulkbottle_perfume   ON bulk_bottle(perfume_id);
 CREATE INDEX idx_decant_bottle        ON decant_batch(bottle_id);
 CREATE INDEX idx_decant_product       ON decant_batch(product_id);
-CREATE INDEX idx_order_user           ON `order`(user_id);
-CREATE INDEX idx_order_status         ON `order`(status);
+CREATE INDEX idx_order_user           ON customer_order(user_id);
+CREATE INDEX idx_order_status         ON customer_order(status);
 CREATE INDEX idx_orderitem_order      ON order_item(order_id);
 CREATE INDEX idx_review_product       ON review(product_id);
 CREATE INDEX idx_chatlog_session      ON chatbot_log(session_id);
 CREATE INDEX idx_chatlog_user         ON chatbot_log(user_id);
+CREATE INDEX idx_faq_category         ON faq(category);
+CREATE INDEX idx_resettoken_user      ON password_reset_token(user_id);
+CREATE INDEX idx_loginattempt_email   ON login_attempt(email_used);
+CREATE INDEX idx_loginattempt_ip      ON login_attempt(ip_address);
+CREATE INDEX idx_auditlog_user        ON audit_log(user_id);
+CREATE INDEX idx_auditlog_table       ON audit_log(table_affected);
 
+-- ============================================================
+-- FULL-TEXT SEARCH SUPPORT
+-- Powers the search bar: matches perfume name, brand-relevant text,
+-- and fragrance notes with relevance ranking instead of slow LIKE queries.
+-- ============================================================
+ALTER TABLE perfume
+    ADD FULLTEXT idx_perfume_search (perfume_name, top_notes, middle_notes, base_notes, description);
 
+ALTER TABLE brand
+    ADD FULLTEXT idx_brand_search (brand_name, description);
 
--- Full product details with perfume & brand info
+ALTER TABLE faq
+    ADD FULLTEXT idx_faq_search (question, answer);
+
+-- ============================================================
+-- VIEWS
+-- ============================================================
+
+-- Full product details with perfume & brand info (used by catalog/search)
 CREATE VIEW vw_product_catalog AS
 SELECT
     p.product_id,
@@ -253,6 +330,7 @@ SELECT
     p.volume_ml,
     p.price,
     p.stock_quantity,
+    pf.perfume_id,
     pf.perfume_name,
     pf.concentration,
     pf.top_notes,
@@ -261,6 +339,7 @@ SELECT
     pf.longevity_hours,
     pf.recommended_season,
     pf.target_gender,
+    b.brand_id,
     b.brand_name,
     b.country_of_origin
 FROM product p
@@ -309,7 +388,7 @@ SELECT
     pay.payment_method,
     pay.status       AS payment_status,
     inv.invoice_number
-FROM `order` o
+FROM customer_order o
 JOIN user    u   ON o.user_id   = u.user_id
 LEFT JOIN payment pay ON o.order_id = pay.order_id
 LEFT JOIN invoice inv ON o.order_id = inv.order_id;
@@ -323,7 +402,37 @@ SELECT
 FROM review
 GROUP BY product_id;
 
+-- Low-stock alert view (bottles running low — supports inventory dashboard)
+CREATE VIEW vw_low_stock_bottles AS
+SELECT
+    bb.bottle_id,
+    bb.batch_number,
+    pf.perfume_name,
+    b.brand_name,
+    bb.bottle_size_ml,
+    bb.ml_remaining,
+    ROUND((bb.ml_remaining / bb.bottle_size_ml) * 100, 1) AS percent_remaining
+FROM bulk_bottle bb
+JOIN perfume pf ON bb.perfume_id = pf.perfume_id
+JOIN brand   b  ON pf.brand_id   = b.brand_id
+WHERE (bb.ml_remaining / bb.bottle_size_ml) < 0.20;  -- under 20% remaining
 
+-- Recent suspicious login activity (supports security monitoring)
+CREATE VIEW vw_recent_failed_logins AS
+SELECT
+    email_used,
+    ip_address,
+    COUNT(*) AS failed_attempts,
+    MAX(attempted_at) AS last_attempt
+FROM login_attempt
+WHERE was_successful = 0
+  AND attempted_at >= (NOW() - INTERVAL 1 HOUR)
+GROUP BY email_used, ip_address
+HAVING COUNT(*) >= 3;
+
+-- ============================================================
+-- SAMPLE DATA
+-- ============================================================
 
 -- Roles
 INSERT INTO role (role_name) VALUES ('admin'), ('customer');
@@ -367,55 +476,50 @@ INSERT INTO bulk_bottle (perfume_id, batch_number, purchase_date, bottle_size_ml
 
 -- Products (sellable listings)
 INSERT INTO product (perfume_id, product_type, volume_ml, price, stock_quantity) VALUES
--- Sauvage
 (1, 'decant',      5.00,   350.00, 4),
 (1, 'decant',     10.00,   650.00, 2),
 (1, 'full_bottle',100.00, 8500.00, 0),
--- Black Orchid
 (2, 'decant',      5.00,   450.00, 1),
 (2, 'decant',     10.00,   800.00, 0),
--- Aventus
 (3, 'decant',      5.00,   600.00, 4),
 (3, 'decant',     10.00,  1100.00, 2),
 (3, 'decant',     20.00,  2000.00, 1),
--- Eros
 (4, 'decant',      5.00,   280.00, 2),
 (4, 'decant',     10.00,   520.00, 2),
--- Acqua di Gio
 (5, 'decant',      5.00,   250.00, 3),
 (5, 'decant',     10.00,   480.00, 3);
 
 -- Decant Batches (traceability records)
 INSERT INTO decant_batch (bottle_id, product_id, quantity_created, quantity_sold, date_created, created_by) VALUES
-(1, 1,  4, 0, '2026-06-03', 1),   -- Sauvage 5ml from BTL-001
-(1, 2,  2, 0, '2026-06-03', 1),   -- Sauvage 10ml from BTL-001
-(2, 4,  1, 0, '2026-06-04', 1),   -- Black Orchid 5ml from BTL-002
-(3, 6,  4, 0, '2026-06-07', 1),   -- Aventus 5ml from BTL-003
-(3, 7,  2, 0, '2026-06-07', 1),   -- Aventus 10ml from BTL-003
-(3, 8,  1, 0, '2026-06-07', 1),   -- Aventus 20ml from BTL-003
-(4, 9,  2, 0, '2026-06-11', 1),   -- Eros 5ml from BTL-004
-(4, 10, 2, 0, '2026-06-11', 1),   -- Eros 10ml from BTL-004
-(5, 11, 3, 0, '2026-06-11', 1),   -- Acqua di Gio 5ml from BTL-005
-(5, 12, 3, 0, '2026-06-11', 1);   -- Acqua di Gio 10ml from BTL-005
+(1, 1,  4, 0, '2026-06-03', 1),
+(1, 2,  2, 0, '2026-06-03', 1),
+(2, 4,  1, 0, '2026-06-04', 1),
+(3, 6,  4, 0, '2026-06-07', 1),
+(3, 7,  2, 0, '2026-06-07', 1),
+(3, 8,  1, 0, '2026-06-07', 1),
+(4, 9,  2, 0, '2026-06-11', 1),
+(4, 10, 2, 0, '2026-06-11', 1),
+(5, 11, 3, 0, '2026-06-11', 1),
+(5, 12, 3, 0, '2026-06-11', 1);
 
 -- Cart & Cart Items
 INSERT INTO cart (user_id) VALUES (2), (3);
 
 INSERT INTO cart_item (cart_id, product_id, quantity) VALUES
-(1, 1, 2),   -- Rafi: 2x Sauvage 5ml
-(1, 6, 1),   -- Rafi: 1x Aventus 5ml
-(2, 11, 1);  -- Nadia: 1x Acqua di Gio 5ml
+(1, 1, 2),
+(1, 6, 1),
+(2, 11, 1);
 
 -- Orders
-INSERT INTO `order` (user_id, address_id, status, total_amount) VALUES
+INSERT INTO customer_order (user_id, address_id, status, total_amount) VALUES
 (2, 1, 'Delivered', 1250.00),
 (3, 2, 'Processing', 480.00);
 
 -- Order Items
 INSERT INTO order_item (order_id, product_id, quantity, unit_price) VALUES
-(1, 1, 2, 350.00),   -- 2x Sauvage 5ml
-(1, 9, 1, 550.00),   -- 1x Eros 5ml (historical price)
-(2, 12, 1, 480.00);  -- 1x Acqua di Gio 10ml
+(1, 1, 2, 350.00),
+(1, 9, 1, 550.00),
+(2, 12, 1, 480.00);
 
 -- Payments
 INSERT INTO payment (order_id, payment_method, amount, transaction_id, status) VALUES
@@ -439,4 +543,19 @@ INSERT INTO chatbot_log (user_id, session_id, user_message, bot_response) VALUES
 (NULL, 'sess-xyz-002', 'Do you have Dior Sauvage decants?',
        'Yes! We currently have Dior Sauvage EDP available in 5ml and 10ml decants. Would you like to add one to your cart?');
 
+-- FAQs (chatbot knowledge base)
+INSERT INTO faq (category, question, answer) VALUES
+('Authenticity', 'How do I know your perfumes are authentic?',
+ 'Every bottle we sell is verified on arrival and assigned a batch number. Each decant is traceable back to its original bottle, which you can view on the product page.'),
+('Decants', 'What sizes do decants come in?',
+ 'We offer 5ml, 10ml, and 20ml decants depending on the perfume, along with full bottles for select products.'),
+('Shipping', 'How long does delivery take within Dhaka?',
+ 'Orders within Dhaka are typically delivered within 1-3 business days after confirmation.'),
+('Returns', 'Can I return a decant if I do not like the scent?',
+ 'Due to hygiene reasons, opened decants cannot be returned. Unopened, unused items can be returned within 3 days of delivery.'),
+('Payments', 'What payment methods do you accept?',
+ 'We accept bKash, Nagad, major cards, and bank transfer.');
 
+-- ============================================================
+-- END OF SCHEMA
+-- ============================================================
