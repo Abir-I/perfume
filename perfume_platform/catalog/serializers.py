@@ -32,18 +32,22 @@ class PerfumeSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     perfume_name = serializers.CharField(source='perfume.perfume_name', read_only=True)
     brand_name = serializers.CharField(source='perfume.brand.brand_name', read_only=True)
+    brand_id = serializers.IntegerField(source='perfume.brand_id', read_only=True)
     concentration = serializers.CharField(source='perfume.concentration', read_only=True)
     top_notes = serializers.CharField(source='perfume.top_notes', read_only=True)
     middle_notes = serializers.CharField(source='perfume.middle_notes', read_only=True)
     base_notes = serializers.CharField(source='perfume.base_notes', read_only=True)
     image_url = serializers.CharField(source='perfume.image_url', read_only=True)
-    
+    target_gender = serializers.CharField(source='perfume.target_gender', read_only=True)
+    recommended_season = serializers.CharField(source='perfume.recommended_season', read_only=True)
+
     class Meta:
         model = Product
         fields = [
             'product_id',
             'perfume_id',
             'perfume_name',
+            'brand_id',
             'brand_name',
             'concentration',
             'top_notes',
@@ -54,4 +58,6 @@ class ProductSerializer(serializers.ModelSerializer):
             'stock_quantity',
             'product_type',
             'image_url',
+            'target_gender',
+            'recommended_season',
         ]

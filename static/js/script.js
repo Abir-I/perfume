@@ -239,11 +239,14 @@ function closeChat() {
   document.getElementById('fabCloseIcon').style.display = 'none';
 }
 
-document.getElementById('chatFab').addEventListener('click', () => {
+// Chatbot only exists on the homepage — guard so other pages
+// (shop, cart, checkout, admin) that share this same script.js
+// don't crash here and lose the navbar/search code below it.
+document.getElementById('chatFab')?.addEventListener('click', () => {
   chatIsOpen ? closeChat() : openChat();
 });
 
-document.getElementById('chatForm').addEventListener('submit', e => {
+document.getElementById('chatForm')?.addEventListener('submit', e => {
   e.preventDefault();
   dispatchMessage();
 });
@@ -309,7 +312,8 @@ async function loadProducts() {
     const list = (data.results || data).slice(0, 4);
     renderProducts(list);
     const count = data.count || list.length;
-    document.getElementById('stat-frag').textContent = count + '+';
+    const statEl = document.getElementById('stat-frag');
+    if (statEl) statEl.textContent = count + '+';
   } catch {
     renderProducts(FALLBACK_PRODUCTS);
   }
@@ -319,6 +323,7 @@ const FALLBACK_IMG = 'https://images.unsplash.com/photo-1541643600914-78b0846837
 
 function renderProducts(list) {
   const grid = document.getElementById('productGrid');
+  if (!grid) return; // featured products grid only exists on the homepage
   grid.innerHTML = list.map((p, i) => {
     const badgeClass = p.badge_class || (p.badge === 'BEST SELLER' ? 'badge-dark' : p.badge === 'TOP RATED' ? 'badge-brass' : p.badge === 'NEW' ? 'badge-sage' : '');
     const price5  = Number(p.price || 0);
@@ -402,6 +407,7 @@ const VISIBLE_REVIEWS = () => window.innerWidth < 640 ? 1 : window.innerWidth < 
 function renderReviews() {
   const track = document.getElementById('reviewsTrack');
   const dots  = document.getElementById('reviewsDots');
+  if (!track || !dots) return; // reviews carousel only exists on the homepage
 
   track.innerHTML = REVIEWS.map(r => `
     <div class="review-card">
@@ -438,8 +444,8 @@ function goReview(idx) {
   document.querySelectorAll('.dot-btn').forEach((d, i) => d.classList.toggle('on', i === revIdx));
 }
 
-document.getElementById('revPrev').addEventListener('click', () => goReview(revIdx - 1));
-document.getElementById('revNext').addEventListener('click', () => goReview(revIdx + 1));
+document.getElementById('revPrev')?.addEventListener('click', () => goReview(revIdx - 1));
+document.getElementById('revNext')?.addEventListener('click', () => goReview(revIdx + 1));
 
 /* ══════════════════════════════════════════════════════════════
    SEARCH
@@ -448,18 +454,37 @@ let searchTimer;
 const searchTrigger  = document.getElementById('searchTrigger');
 const searchDropdown = document.getElementById('searchDropdown');
 const searchInput    = document.getElementById('searchInput');
+const searchCloseBtn = document.getElementById('searchCloseBtn');
+
+function closeSearchDropdown() {
+  searchDropdown.classList.remove('open');
+  searchDropdown.setAttribute('aria-hidden', 'true');
+  if (window.innerWidth <= 640) document.body.style.overflow = '';
+}
 
 searchTrigger.addEventListener('click', () => {
   const open = searchDropdown.classList.toggle('open');
   searchDropdown.setAttribute('aria-hidden', String(!open));
-  if (open) searchInput.focus();
+  if (open) {
+    searchInput.focus();
+    // On mobile the dropdown becomes a fixed full-width panel, so lock
+    // background scroll the same way the mobile nav/cart drawer already do.
+    if (window.innerWidth <= 640) document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
 });
+
+searchCloseBtn.addEventListener('click', closeSearchDropdown);
 
 document.addEventListener('click', e => {
   if (!e.target.closest('.nav-search-wrap')) {
-    searchDropdown.classList.remove('open');
-    searchDropdown.setAttribute('aria-hidden', 'true');
+    closeSearchDropdown();
   }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeSearchDropdown();
 });
 
 searchInput.addEventListener('input', () => {
@@ -509,8 +534,7 @@ resultsEl.innerHTML = results.map((p, idx) => `
       const brandName = this.getAttribute('data-brand-name');
       
       // Close search dropdown
-      searchDropdown.classList.remove('open');
-      searchDropdown.setAttribute('aria-hidden', 'true');
+      closeSearchDropdown();
       
       // Show quick view popup
       quickView(perfumeName, brandName);
@@ -537,7 +561,47 @@ function updateActiveLink() {
   document.querySelectorAll('.nav-link[data-section]').forEach(l => {
     l.classList.toggle('active', l.dataset.section === current);
   });
+  document.querySelectorAll('.mobile-nav-link[data-section]').forEach(l => {
+    l.classList.toggle('active', l.dataset.section === current);
+  });
 }
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE HAMBURGER MENU
+   ══════════════════════════════════════════════════════════════ */
+const navHamburger = document.getElementById('navHamburger');
+const mobileNavPanel = document.getElementById('mobileNavPanel');
+const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+
+function toggleMobileNav(forceOpen) {
+  const shouldOpen = forceOpen ?? !mobileNavPanel.classList.contains('open');
+  navHamburger.classList.toggle('open', shouldOpen);
+  navHamburger.setAttribute('aria-expanded', String(shouldOpen));
+  mobileNavPanel.classList.toggle('open', shouldOpen);
+  mobileNavPanel.setAttribute('aria-hidden', String(!shouldOpen));
+  mobileNavOverlay.classList.toggle('open', shouldOpen);
+  document.body.style.overflow = shouldOpen ? 'hidden' : '';
+}
+
+navHamburger.addEventListener('click', () => toggleMobileNav());
+mobileNavOverlay.addEventListener('click', () => toggleMobileNav(false));
+
+// Tapping any link inside the mobile menu should close it, so people
+// aren't left staring at the menu after they've already navigated.
+document.querySelectorAll('.mobile-nav-link').forEach(link => {
+  link.addEventListener('click', () => toggleMobileNav(false));
+});
+
+// Escape key closes it too, same as the cart drawer / modals
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') toggleMobileNav(false);
+});
+
+// If someone resizes back to desktop width with the menu open, close it
+// so it can't get stuck open behind the (now-hidden) hamburger button.
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 640) toggleMobileNav(false);
+});
 
 /* ══════════════════════════════════════════════════════════════
    SCROLL REVEAL
@@ -588,7 +652,7 @@ async function loadBrands() {
 /* ══════════════════════════════════════════════════════════════
    NEWSLETTER
    ══════════════════════════════════════════════════════════════ */
-document.getElementById('newsletterForm').addEventListener('submit', async e => {
+document.getElementById('newsletterForm')?.addEventListener('submit', async e => {
   e.preventDefault();
   const emailEl = document.getElementById('newsletterEmail');
   const email   = emailEl.value.trim();

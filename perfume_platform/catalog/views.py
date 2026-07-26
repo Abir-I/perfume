@@ -27,10 +27,13 @@ class ProductListView(APIView):
     
     Query parameters:
     - search: search by product name, brand, or notes
-    - brand_id: filter by brand
+    - brand_id: filter by brand (repeatable: ?brand_id=1&brand_id=3)
     - min_price: filter by minimum price
     - max_price: filter by maximum price
     - product_type: filter by type (e.g., "decant", "full_size")
+    - concentration: filter by concentration, repeatable (EDT, EDP, Parfum, EDC)
+    - gender: filter by target gender, repeatable (Male, Female, Unisex)
+    - season: filter by recommended season, repeatable (Spring, Summer, Fall, Winter, All Season)
     - page: pagination page number (default: 1)
     """
     def get(self, request):
@@ -47,10 +50,11 @@ class ProductListView(APIView):
                 Q(perfume__base_notes__icontains=search_query)
             )
         
-        # Brand filter
-        brand_id = request.query_params.get('brand_id')
-        if brand_id:
-            products = products.filter(perfume__brand_id=brand_id)
+        # Brand filter — supports selecting more than one brand checkbox
+        # (?brand_id=1&brand_id=3), not just a single value.
+        brand_ids = request.query_params.getlist('brand_id')
+        if brand_ids:
+            products = products.filter(perfume__brand_id__in=brand_ids)
         
         # Price range filter
         min_price = request.query_params.get('min_price')
@@ -70,6 +74,21 @@ class ProductListView(APIView):
         product_type = request.query_params.get('product_type')
         if product_type:
             products = products.filter(product_type=product_type)
+
+        # Concentration filter (EDT, EDP, Parfum, EDC) — checkboxes, multi-select
+        concentrations = request.query_params.getlist('concentration')
+        if concentrations:
+            products = products.filter(perfume__concentration__in=concentrations)
+
+        # Gender filter (Male, Female, Unisex) — checkboxes, multi-select
+        genders = request.query_params.getlist('gender')
+        if genders:
+            products = products.filter(perfume__target_gender__in=genders)
+
+        # Season filter (Spring, Summer, Fall, Winter, All Season) — checkboxes, multi-select
+        seasons = request.query_params.getlist('season')
+        if seasons:
+            products = products.filter(perfume__recommended_season__in=seasons)
         
         # Stock filter (only show in-stock items)
         products = products.filter(stock_quantity__gt=0)
