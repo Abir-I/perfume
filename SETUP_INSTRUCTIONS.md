@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Auth & Input-Validation Hardening Package
 
 **Requires the `cart` and `checkout` packages to already be in your
@@ -181,3 +182,109 @@ which resolves tokens against your actual `accounts.User` table. Any
 other endpoint you protect later will need the same authentication
 class.
 >>>>>>> e3386a4d74ddeeb9a881026351c901dd539fa312
+=======
+# Setup — merging this into the Abir project
+
+This package's folder layout mirrors `perfume-Abir.zip` exactly, so
+merging is a straight copy-over.
+
+## 1. Start from the Abir project
+
+Unzip `perfume-Abir.zip` first — that's the base project (accounts,
+catalog, cart, orders apps, models, DB schema, templates, static files).
+
+## 2. Copy this package on top of it
+
+Copy everything under this package's `perfume_platform/` folder into the
+Abir project's `perfume_platform/` folder, **overwriting** where paths
+match:
+
+```
+perfume_platform/cart/serializers.py                 <- replaces existing file
+perfume_platform/cart/views.py                        <- replaces existing file
+perfume_platform/cart/urls.py                          <- replaces existing file
+
+perfume_platform/orders/serializers.py                 <- replaces existing file
+perfume_platform/orders/views.py                       <- replaces existing file
+perfume_platform/orders/urls.py                         <- replaces existing file
+
+perfume_platform/reviews/                              <- brand new app, add as-is
+    __init__.py
+    apps.py
+    migrations/__init__.py
+    serializers.py
+    urls.py
+    views.py
+
+perfume_platform/perfume_platform/settings.py           <- replaces existing file
+perfume_platform/perfume_platform/urls.py                <- replaces existing file
+```
+
+What changed in `settings.py`: `'reviews'` added to `INSTALLED_APPS`, plus
+two new settings used by checkout — `ORDER_TAX_RATE` and
+`ORDER_FLAT_SHIPPING_FEE` (both default to `0.00`; set real values once
+your tax/shipping rules are decided — see the comment above them in the
+file).
+
+What changed in the project's `urls.py`: one new line,
+`path('api/reviews/', include('reviews.urls'))`.
+
+`accounts/`, `catalog/`, and everything outside `perfume_platform/`
+(templates, static, `perfume.sql`) are untouched — nothing here needs
+them changed.
+
+## 3. No new migrations needed
+
+Every model these endpoints use (`Cart`, `CartItem`, `CustomerOrder`,
+`OrderItem`, `Review`, `Product`, `Address`) already exists in
+`accounts/models.py` as `managed = False`, mapped onto tables already in
+`perfume.sql` (including `review`, which the base project's apps didn't
+have endpoints for yet, but the table was already there). Nothing to run
+against the database — `reviews/migrations/__init__.py` is just an empty
+placeholder Django requires for the app to load.
+
+## 4. One thing to know: order status has no "Paid" value
+
+`customer_order.status` is a MySQL
+`ENUM('Pending','Confirmed','Processing','Shipped','Delivered','Cancelled')`
+— there's no `Paid` status in the schema. `GET /api/orders/?status=` only
+accepts those six values (case-insensitively). Payment success is tracked
+separately in the `payment` table if you need it. If your product
+actually needs a "Paid" order state, that's a schema change (`ALTER
+TABLE customer_order MODIFY status ENUM(...)`), not something fixable in
+this API layer alone — flagging it now rather than silently mapping
+"paid" to one of the existing values.
+
+## 5. Try it out
+
+```
+# Log in first (from the accounts app)
+POST /api/accounts/login/          -> { "access": "..." }
+
+# Add to cart
+POST /api/cart/add/
+Authorization: Bearer <access>
+{ "product_id": 5, "quantity": 2 }
+
+# View cart
+GET /api/cart/
+Authorization: Bearer <access>
+
+# Update / remove a line
+PATCH  /api/cart/update/{cart_item_id}/   { "quantity": 3 }
+DELETE /api/cart/remove/{cart_item_id}/
+
+# Checkout
+POST /api/orders/checkout/
+{ "address_id": 1, "notes": "leave at the door" }
+
+# Orders
+GET /api/orders/
+GET /api/orders/?status=pending
+GET /api/orders/{order_id}/
+
+# Reviews
+POST /api/reviews/   { "product_id": 5, "rating": 5, "comment": "Lovely." }
+GET  /api/reviews/?product_id=5
+```
+>>>>>>> e964cdd (Initial perfume platform project)
