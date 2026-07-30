@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.pagination import LimitOffsetPagination
 
 from accounts.models import Brand, Product
 from .serializers import (
@@ -6,6 +7,11 @@ from .serializers import (
     ProductDetailSerializer,
     ProductListSerializer,
 )
+
+
+class ProductListPagination(LimitOffsetPagination):
+    default_limit = 20
+    max_limit = 100
 
 
 class BrandListView(generics.ListAPIView):
@@ -24,14 +30,20 @@ class ProductListView(generics.ListAPIView):
     GET /api/catalog/products/
 
     Returns active products, with optional filtering via query params:
-      ?brand=<brand_id>          e.g. /api/catalog/products/?brand=3
+      ?brand_id=<id>             e.g. /api/catalog/products/?brand_id=3
+                                  (?brand=<id> also accepted, kept for
+                                  backward compatibility with Sprint 3)
       ?size=<volume_ml>          e.g. /api/catalog/products/?size=5
       ?product_type=<type>       e.g. /api/catalog/products/?product_type=decant
+      ?min_price=<price>         e.g. /api/catalog/products/?min_price=500
+      ?max_price=<price>         e.g. /api/catalog/products/?max_price=1000
+      ?limit=&offset=            pagination, default 20/page, max 100
 
     Filters can be combined, e.g.:
-      /api/catalog/products/?brand=3&product_type=decant&size=5
+      /api/catalog/products/?brand_id=3&product_type=decant&min_price=200&max_price=800
     """
     serializer_class = ProductListSerializer
+    pagination_class = ProductListPagination
 
     def get_queryset(self):
         queryset = (
@@ -39,7 +51,7 @@ class ProductListView(generics.ListAPIView):
             .select_related('perfume', 'perfume__brand')
         )
 
-        brand_id = self.request.query_params.get('brand')
+        brand_id = self.request.query_params.get('brand_id') or self.request.query_params.get('brand')
         if brand_id:
             queryset = queryset.filter(perfume__brand_id=brand_id)
 
@@ -50,6 +62,14 @@ class ProductListView(generics.ListAPIView):
         product_type = self.request.query_params.get('product_type')
         if product_type:
             queryset = queryset.filter(product_type__iexact=product_type)
+
+        min_price = self.request.query_params.get('min_price')
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+
+        max_price = self.request.query_params.get('max_price')
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
 
         return queryset.order_by('perfume__perfume_name', 'volume_ml')
 
