@@ -2,10 +2,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import AccessToken
 
-# accounts/views.py:RegisterView always signs new self-registered users up
-# with role_id=2, so we're treating role_id=1 as "admin/staff". There's no
-# seeded Role data to confirm this against — if your `role` table uses a
-# different id for admin, change ADMIN_ROLE_ID below.
+
 ADMIN_ROLE_ID = 1
 
 
@@ -35,6 +32,6 @@ class IsAdminRole(BasePermission):
         except (TokenError, InvalidToken):
             return False
 
-        # stash the decoded token in case a view wants user_id/email later
+       
         request.jwt_payload = token
         return token.get('role_id') == ADMIN_ROLE_ID
