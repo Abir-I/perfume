@@ -154,8 +154,7 @@ class ProductImageUploadView(AdminAPIViewMixin, APIView):
             for chunk in image.chunks():
                 destination.write(chunk)
 
-        # remove the old file if it lives in our own products folder
-        # (skip anything that looks like an external/hotlinked URL)
+      
         old_url = perfume.image_url
         if old_url and old_url.startswith(f"{settings.STATIC_URL}images/products/"):
             old_relative = old_url[len(settings.STATIC_URL):]
