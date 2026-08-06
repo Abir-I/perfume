@@ -1,0 +1,483 @@
+{% load static %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - The Last Note</title>
+    <link rel="stylesheet" href="{% static 'css/admin_premium.css' %}">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- ========== NAVBAR ========== -->
+        <nav class="admin-navbar">
+            <div class="admin-navbar-left">
+                <h1 class="admin-logo">🎀 Admin Dashboard</h1>
+            </div>
+            <div class="admin-navbar-right">
+                <span class="admin-user-info">Admin</span>
+                <button class="admin-btn admin-btn-outline" id="logoutBtn">Logout</button>
+            </div>
+        </nav>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <div class="admin-content">
+            <!-- ========== TOOLBAR & FILTERS ========== -->
+            <div class="admin-toolbar-wrapper">
+                <!-- Search Section -->
+                <div class="admin-search-section">
+                    <input 
+                        type="text" 
+                        id="adminSearchInput" 
+                        class="admin-search-input" 
+                        placeholder="🔍 Search products...">
+                </div>
+
+                <!-- Filters Section -->
+                <div class="admin-filters-section">
+                    <select id="filterBrand" class="admin-filter-select">
+                        <option value="">🏷️ All Brands</option>
+                    </select>
+
+                    <select id="filterGender" class="admin-filter-select">
+                        <option value="">👥 All Genders</option>
+                        <option value="Male">👨 Male</option>
+                        <option value="Female">👩 Female</option>
+                        <option value="Unisex">⚖️ Unisex</option>
+                    </select>
+
+                    <select id="filterType" class="admin-filter-select">
+                        <option value="">📦 All Types</option>
+                        <option value="Decant">Decant</option>
+                        <option value="full_bottle">Full Bottle</option>
+                    </select>
+
+                    <!-- NEW: Status Filter -->
+                    <select id="filterStatus" class="admin-filter-select">
+                        <option value="">📊 All Status</option>
+                        <option value="in_stock">✅ In Stock</option>
+                        <option value="out_of_stock">❌ Out of Stock</option>
+                        <option value="low_stock">⚠️ Low Stock</option>
+                        <option value="discontinued">🛑 Discontinued</option>
+                    </select>
+
+                    <!-- NEW: Feature Filter -->
+                    <select id="filterFeature" class="admin-filter-select">
+                        <option value="">✨ All Features</option>
+                        <option value="on_discount">💰 On Discount</option>
+                        <option value="limited_edition">👑 Limited Edition</option>
+                        <option value="featured">⭐ Featured</option>
+                        <option value="hot_deal">🔥 Hot Deal</option>
+                    </select>
+
+                    <button id="resetFiltersBtn" class="admin-btn admin-btn-secondary">✕ Clear Filters</button>
+                </div>
+
+                <!-- Count Section -->
+                <div class="admin-count-section">
+                    <span id="adminCount" class="admin-count-badge">0 products</span>
+                    <button class="admin-btn admin-btn-primary" id="addPerfumeBtn">+ Add New Perfume</button>
+                </div>
+            </div>
+
+            <!-- ========== PRODUCTS TABLE ========== -->
+            <div class="admin-table-wrapper">
+                <table class="admin-table" id="adminTable">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Product Name</th>
+                            <th>Brand</th>
+                            <th>Price</th>
+                            <th>Discount</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                            <th>Features</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View (Hidden on desktop) -->
+            <div class="admin-cards-wrapper" id="adminCardsWrapper">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== PERFUME MODAL (Enhanced) ========== -->
+    <div class="modal-overlay" id="perfumeModalOverlay">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="perfumeModalTitle">Add New Perfume</h2>
+                <p id="perfumeModalSubtitle" class="modal-subtitle">Fill in all required fields marked with <span class="required">*</span></p>
+            </div>
+
+            <form id="perfumeForm" class="admin-form-grid">
+                <!-- ERROR DISPLAY -->
+                <div id="perfumeFormError" class="form-error-box" style="display: none;">
+                    <span id="perfumeFormErrorText"></span>
+                </div>
+
+                <!-- ===== SECTION 1: IMAGE UPLOAD ===== -->
+                <section class="admin-form-section">
+                    <h3 class="admin-form-section-title">📸 Product Image</h3>
+                    <div class="admin-form-grid-inner">
+                        <div class="image-upload-zone" id="imageUploadZone">
+                            <input type="file" id="imageFileInput" class="image-file-input" accept="image/*">
+                            <div class="image-upload-content">
+                                <span id="imageUploadText">📤 Drag & drop or click to upload</span>
+                            </div>
+                            <img id="imagePreview" class="image-preview" style="display: none;">
+                        </div>
+                        <small class="form-hint">Max size: 5MB. Supported: JPG, PNG, WebP</small>
+                    </div>
+                </section>
+
+                <!-- ===== SECTION 2: BASIC INFORMATION ===== -->
+                <section class="admin-form-section">
+                    <h3 class="admin-form-section-title">ℹ️ Basic Information</h3>
+                    <div class="admin-form-grid-inner">
+                        <div class="form-group">
+                            <label for="fBrand" class="form-label">Brand <span class="required">*</span></label>
+                            <select id="fBrand" class="form-input form-select" required>
+                                <option value="">Select a brand</option>
+                            </select>
+                            <span class="form-error" id="fBrandError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fName" class="form-label">Product Name <span class="required">*</span></label>
+                            <input type="text" id="fName" class="form-input" placeholder="e.g., Oud Royale" required>
+                            <span class="form-error" id="fNameError"></span>
+                            <small class="form-hint">2-100 characters</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fConcentration" class="form-label">Concentration <span class="required">*</span></label>
+                            <select id="fConcentration" class="form-input form-select" required>
+                                <option value="">Select concentration</option>
+                                <option value="EDT">EDT (Eau de Toilette)</option>
+                                <option value="EDP">EDP (Eau de Parfum)</option>
+                                <option value="Parfum">Parfum (Pure Perfume)</option>
+                                <option value="EDC">EDC (Eau de Cologne)</option>
+                                <option value="Cologne">Cologne</option>
+                            </select>
+                            <span class="form-error" id="fConcentrationError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fGender" class="form-label">Target Gender <span class="required">*</span></label>
+                            <select id="fGender" class="form-input form-select" required>
+                                <option value="">Select gender</option>
+                                <option value="Male">👨 Male</option>
+                                <option value="Female">👩 Female</option>
+                                <option value="Unisex">⚖️ Unisex</option>
+                            </select>
+                            <span class="form-error" id="fGenderError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fLongevity" class="form-label">Longevity (hours)</label>
+                            <input type="number" id="fLongevity" class="form-input" placeholder="0-24" min="0" max="24">
+                            <small class="form-hint">How long the scent lasts</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fSeason" class="form-label">Best Season</label>
+                            <select id="fSeason" class="form-input form-select">
+                                <option value="">Select season</option>
+                                <option value="Spring">🌸 Spring</option>
+                                <option value="Summer">☀️ Summer</option>
+                                <option value="Fall">🍂 Fall</option>
+                                <option value="Winter">❄️ Winter</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== SECTION 3: FRAGRANCE NOTES ===== -->
+                <section class="admin-form-section">
+                    <h3 class="admin-form-section-title">🌿 Fragrance Notes</h3>
+                    <div class="admin-form-grid-inner">
+                        <div class="form-group">
+                            <label for="fTopNotes" class="form-label">Top Notes</label>
+                            <input type="text" id="fTopNotes" class="form-input" placeholder="e.g., Bergamot, Lemon">
+                            <small class="form-hint">Comma-separated</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fMiddleNotes" class="form-label">Middle Notes</label>
+                            <input type="text" id="fMiddleNotes" class="form-input" placeholder="e.g., Rose, Jasmine">
+                            <small class="form-hint">Comma-separated</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fBaseNotes" class="form-label">Base Notes</label>
+                            <input type="text" id="fBaseNotes" class="form-input" placeholder="e.g., Sandalwood, Musk">
+                            <small class="form-hint">Comma-separated</small>
+                        </div>
+
+                        <div class="form-group form-full-width">
+                            <label for="fDescription" class="form-label">Description</label>
+                            <textarea id="fDescription" class="form-input form-textarea" placeholder="Product description..." rows="4"></textarea>
+                            <div class="char-counter">
+                                <span id="charCount">0</span> / 500
+                            </div>
+                            <span class="form-error" id="fDescriptionError"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== SECTION 4: PRODUCT VARIANT ===== -->
+                <section class="admin-form-section">
+                    <h3 class="admin-form-section-title">📦 Product Variant</h3>
+                    <div class="admin-form-grid-inner">
+                        <div class="form-group">
+                            <label for="fProductType" class="form-label">Product Type <span class="required">*</span></label>
+                            <select id="fProductType" class="form-input form-select" required>
+                                <option value="">Select type</option>
+                                <option value="Decant">Decant</option>
+                                <option value="full_bottle">Full Bottle</option>
+                            </select>
+                            <span class="form-error" id="fProductTypeError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fVolume" class="form-label">Volume (ml) <span class="required">*</span></label>
+                            <input type="number" id="fVolume" class="form-input" placeholder="e.g., 50" step="0.5" required>
+                            <span class="form-error" id="fVolumeError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fPrice" class="form-label">Price <span class="required">*</span></label>
+                            <input type="number" id="fPrice" class="form-input" placeholder="e.g., 99.99" step="0.01" required>
+                            <span class="form-error" id="fPriceError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fStock" class="form-label">Stock Quantity</label>
+                            <input type="number" id="fStock" class="form-input" placeholder="0" min="0">
+                            <small class="form-hint">Leave empty for unlimited</small>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== SECTION 5: PRICING & DISCOUNTS ===== (NEW) -->
+                <section class="admin-form-section premium-section">
+                    <h3 class="admin-form-section-title">💰 Pricing & Discounts</h3>
+                    <div class="admin-form-grid-inner">
+                        <div class="form-group">
+                            <label for="fDiscountType" class="form-label">Discount Type</label>
+                            <select id="fDiscountType" class="form-input form-select">
+                                <option value="none">No Discount</option>
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed Amount ($)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="discountValueGroup" style="display: none;">
+                            <label for="fDiscountValue" class="form-label">Discount Value</label>
+                            <input type="number" id="fDiscountValue" class="form-input" placeholder="0" step="0.01" min="0">
+                            <small class="form-hint">
+                                <span id="discountHint">Discount amount or percentage</span>
+                            </small>
+                        </div>
+
+                        <div class="form-group" id="discountStartGroup" style="display: none;">
+                            <label for="fDiscountStart" class="form-label">Discount Start Date</label>
+                            <input type="datetime-local" id="fDiscountStart" class="form-input">
+                        </div>
+
+                        <div class="form-group" id="discountEndGroup" style="display: none;">
+                            <label for="fDiscountEnd" class="form-label">Discount End Date</label>
+                            <input type="datetime-local" id="fDiscountEnd" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fCostPrice" class="form-label">Cost Price (Internal)</label>
+                            <input type="number" id="fCostPrice" class="form-input" placeholder="e.g., 50" step="0.01">
+                            <small class="form-hint">For profit margin calculation</small>
+                        </div>
+
+                        <div class="form-group" id="finalPriceGroup">
+                            <label class="form-label">Final Price</label>
+                            <div class="final-price-display">
+                                $<span id="finalPriceValue">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== SECTION 6: SPECIAL OFFERS ===== (NEW) -->
+                <section class="admin-form-section premium-section">
+                    <h3 class="admin-form-section-title">🎁 Special Offers</h3>
+                    <div class="admin-form-grid-inner">
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="fIsLimitedEdition" class="form-checkbox">
+                                <span>👑 Limited Edition</span>
+                            </label>
+                            <small class="form-hint">Mark as exclusive limited edition</small>
+                        </div>
+
+                        <div class="form-group checkbox-group" id="limitedQtyGroup" style="display: none;">
+                            <label for="fLimitedQty" class="form-label">Limited Quantity</label>
+                            <input type="number" id="fLimitedQty" class="form-input" placeholder="e.g., 100" min="1">
+                            <small class="form-hint">Total units available for limited edition</small>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="fIsFeatured" class="form-checkbox">
+                                <span>⭐ Featured Product</span>
+                            </label>
+                            <small class="form-hint">Show on homepage</small>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="fIsHotDeal" class="form-checkbox">
+                                <span>🔥 Hot Deal</span>
+                            </label>
+                            <small class="form-hint">Mark as trending/hot deal</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fOfferDescription" class="form-label">Offer Description</label>
+                            <input type="text" id="fOfferDescription" class="form-input" placeholder="e.g., Buy 2 get 15% off">
+                            <small class="form-hint">Custom offer message</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fOfferEndDate" class="form-label">Offer Ends On</label>
+                            <input type="datetime-local" id="fOfferEndDate" class="form-input">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== SECTION 7: STOCK & AVAILABILITY ===== (NEW) -->
+                <section class="admin-form-section premium-section">
+                    <h3 class="admin-form-section-title">📊 Stock & Availability</h3>
+                    <div class="admin-form-grid-inner">
+                        <div class="form-group">
+                            <label for="fStockStatus" class="form-label">Stock Status</label>
+                            <select id="fStockStatus" class="form-input form-select">
+                                <option value="in_stock">✅ In Stock</option>
+                                <option value="low_stock">⚠️ Low Stock</option>
+                                <option value="out_of_stock">❌ Out of Stock</option>
+                                <option value="discontinued">🛑 Discontinued</option>
+                                <option value="pre_order">📅 Pre-Order</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fLowStockThreshold" class="form-label">Low Stock Threshold</label>
+                            <input type="number" id="fLowStockThreshold" class="form-input" placeholder="e.g., 5" min="1">
+                            <small class="form-hint">Alert when stock falls below this</small>
+                        </div>
+
+                        <div class="form-group" id="preOrderDateGroup" style="display: none;">
+                            <label for="fPreOrderDate" class="form-label">Available On (Pre-Order)</label>
+                            <input type="datetime-local" id="fPreOrderDate" class="form-input">
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="fAllowBackorder" class="form-checkbox">
+                                <span>🔄 Allow Backorder</span>
+                            </label>
+                            <small class="form-hint">Allow customers to pre-order when out of stock</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fReorderLevel" class="form-label">Reorder Level</label>
+                            <input type="number" id="fReorderLevel" class="form-input" placeholder="e.g., 20" min="0">
+                            <small class="form-hint">Suggest reorder when stock reaches this</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fWarehouse" class="form-label">Warehouse Location</label>
+                            <select id="fWarehouse" class="form-input form-select">
+                                <option value="main">📍 Main Warehouse</option>
+                                <option value="secondary">📍 Secondary Location</option>
+                                <option value="online_only">🌐 Online Only</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== SECTION 8: PRODUCT TAGS & CATEGORIES ===== (NEW) -->
+                <section class="admin-form-section premium-section">
+                    <h3 class="admin-form-section-title">🏷️ Tags & Categories</h3>
+                    <div class="admin-form-grid-inner">
+                        <div class="form-group form-full-width">
+                            <label for="fTags" class="form-label">Product Tags</label>
+                            <input type="text" id="fTags" class="form-input" placeholder="e.g., luxury, fresh, oriental (comma-separated)">
+                            <div class="tags-display" id="tagsDisplay"></div>
+                            <small class="form-hint">Separate tags with commas for better searchability</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fCategory" class="form-label">Primary Category</label>
+                            <select id="fCategory" class="form-input form-select">
+                                <option value="">Select category</option>
+                                <option value="luxury">👑 Luxury</option>
+                                <option value="fresh">🌊 Fresh</option>
+                                <option value="floral">🌹 Floral</option>
+                                <option value="oriental">✨ Oriental</option>
+                                <option value="woody">🌳 Woody</option>
+                                <option value="fruity">🍓 Fruity</option>
+                                <option value="aromatic">🌿 Aromatic</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fSubCategory" class="form-label">Sub Category</label>
+                            <select id="fSubCategory" class="form-input form-select">
+                                <option value="">Select sub category</option>
+                                <option value="unisex_luxury">Unisex Luxury</option>
+                                <option value="mens_designer">Men's Designer</option>
+                                <option value="womens_designer">Women's Designer</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== FORM ACTIONS ===== -->
+                <div class="form-actions">
+                    <button type="button" class="admin-btn admin-btn-secondary" id="perfumeFormCancelBtn">Cancel</button>
+                    <button type="submit" class="admin-btn admin-btn-primary" id="perfumeFormSubmitBtn">Save Perfume</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========== DELETE CONFIRMATION MODAL ========== -->
+    <div class="modal-overlay" id="deleteConfirmOverlay">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Delete Perfume</h2>
+                <p class="modal-subtitle">This action cannot be undone</p>
+            </div>
+            <p id="deleteConfirmText" class="modal-text">Are you sure you want to delete this product?</p>
+            <div class="form-actions">
+                <button type="button" class="admin-btn admin-btn-secondary" id="deleteConfirmCancelBtn">Cancel</button>
+                <button type="button" class="admin-btn admin-btn-danger" id="deleteConfirmActionBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script src="{% static 'js/admin.js' %}"></script>
+    <script src="{% static 'js/admin-forms.js' %}"></script>
+    <script src="{% static 'js/admin-filters.js' %}"></script>
+    <script src="{% static 'js/admin-validation.js' %}"></script>
+    <script src="{% static 'js/admin-premium.js' %}"></script>
+</body>
+</html>

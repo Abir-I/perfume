@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - The Last Note | Premium Perfume</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/cart-premium-page.css' %}">
+</head>
+<body>
+    {% include 'partials/_navbar.html' %}
+
+    <!-- PAGE BREADCRUMB -->
+    <nav class="cart-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Shopping Cart</span>
+    </nav>
+
+    <!-- MAIN CART CONTAINER -->
+    <main class="cart-page-container">
+        <div class="cart-page-header">
+            <h1 class="cart-page-title">Your Cart</h1>
+            <p class="cart-page-subtitle">Review your selections and proceed to checkout</p>
+        </div>
+
+        <div class="cart-page-grid">
+            <!-- CART ITEMS SECTION -->
+            <section class="cart-items-wrapper">
+                <div id="cartLoadingState" class="cart-loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading your cart...</p>
+                </div>
+
+                <div id="cartEmptyState" class="cart-empty-state" style="display: none;">
+                    <div class="empty-state-icon">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                    </div>
+                    <h2 class="empty-state-title">Your Cart Is Empty</h2>
+                    <p class="empty-state-description">Discover our curated collection of premium fragrances and add your favorites to the cart.</p>
+                    <a href="/shop/" class="empty-state-cta">Continue Shopping</a>
+                </div>
+
+                <div id="cartItemsContainer" class="cart-items-list"></div>
+            </section>
+
+            <!-- CART SUMMARY SIDEBAR -->
+            <aside class="cart-summary-sidebar">
+                <div class="cart-summary-card">
+                    <h2 class="summary-title">Order Summary</h2>
+
+                    <div class="summary-items">
+                        <div class="summary-row">
+                            <span class="summary-label">Subtotal</span>
+                            <span class="summary-value" id="summarySubtotal">$0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Shipping</span>
+                            <span class="summary-value" id="summaryShipping">Free</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Tax</span>
+                            <span class="summary-value" id="summaryTax">$0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-total">
+                        <span class="total-label">Total</span>
+                        <span class="total-amount" id="summaryTotal">$0.00</span>
+                    </div>
+
+                    <button class="checkout-btn" id="checkoutBtn" onclick="proceedToCheckout()">
+                        <span>Proceed to Checkout</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </button>
+
+                    <button class="continue-shopping-btn" onclick="continueShopping()">
+                        Continue Shopping
+                    </button>
+
+                    <div class="cart-note">
+                        <p>🎁 Free shipping on orders over $50</p>
+                        <p>✓ Authentic products guaranteed</p>
+                        <p>💳 Cash on Delivery available</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    {% include 'partials/_footer.html' %}
+
+    <!-- PREMIUM CART JAVASCRIPT -->
+    <script src="{% static 'js/cart-premium-page.js' %}"></script>
+    <script src="{% static 'js/product-links.js' %}"></script>
+</body>
+</html>

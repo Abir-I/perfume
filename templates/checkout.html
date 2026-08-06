@@ -1,0 +1,363 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - The Last Note</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/shop.css' %}">
+    <style>
+        .checkout-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        
+        .checkout-header {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            color: #1a1a2e;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .checkout-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        
+        .checkout-form {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 8px;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .form-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d4af37;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .order-summary {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .order-summary h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d4af37;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+        
+        .order-item-name {
+            flex: 1;
+        }
+        
+        .order-item-price {
+            color: #d4af37;
+            font-weight: bold;
+            margin-left: 10px;
+            min-width: 70px;
+            text-align: right;
+        }
+        
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #d4af37;
+            font-size: 16px;
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+        
+        .order-total-value {
+            color: #d4af37;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #d4af37;
+            border: 2px solid #d4af37;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .submit-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .checkout-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-summary {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-logo">
+                <span class="logo-icon">🎀</span>
+                <span class="logo-text">The Last Note</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/shop/">Shop</a></li>
+                <li><a href="/cart/">Cart</a></li>
+                <li id="authLink"></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="checkout-container">
+        <h1 class="checkout-header">Checkout</h1>
+        
+        <div class="checkout-content">
+            <form class="checkout-form" id="checkoutForm">
+                <div class="form-section">
+                    <h3>Shipping Information</h3>
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" required>
+                        <span class="error-message" id="nameError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                        <span class="error-message" id="emailError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" required>
+                        <span class="error-message" id="phoneError"></span>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>Shipping Address</h3>
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <textarea id="address" name="address" required></textarea>
+                        <span class="error-message" id="addressError"></span>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>Payment Method</h3>
+                    <div class="form-group">
+                        <label for="paymentMethod">Select Payment Method</label>
+                        <select id="paymentMethod" name="payment_method" required>
+                            <option value="cod">Cash on Delivery</option>
+                            <option value="card">Credit/Debit Card (Coming Soon)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">Place Order</button>
+            </form>
+            
+            <div class="order-summary">
+                <h3>Order Summary</h3>
+                <div id="orderItems"></div>
+                <div class="order-total">
+                    <span>Total:</span>
+                    <span class="order-total-value" id="orderTotal">$0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 The Last Note. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const getAuthToken = () => localStorage.getItem('authToken');
+        
+        let cartData = null;
+        
+        const loadCheckoutData = async () => {
+            try {
+                const response = await fetch('/api/cart/', {
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/';
+                        return;
+                    }
+                    throw new Error('Failed to load cart');
+                }
+                
+                cartData = await response.json();
+                renderOrderSummary();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load cart data');
+                window.location.href = '/cart/';
+            }
+        };
+        
+        const renderOrderSummary = () => {
+            if (!cartData || !cartData.items) return;
+            
+            const itemsHTML = cartData.items.map(item => `
+                <div class="order-item">
+                    <span class="order-item-name">${item.product_name} x${item.quantity}</span>
+                    <span class="order-item-price">$${parseFloat(item.subtotal).toFixed(2)}</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('orderItems').innerHTML = itemsHTML;
+            document.getElementById('orderTotal').textContent = `$${parseFloat(cartData.total_price).toFixed(2)}`;
+        };
+        
+        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!cartData || !cartData.items.length) {
+                alert('Your cart is empty');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            
+            try {
+                const formData = {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    address: document.getElementById('address').value,
+                    payment_method: document.getElementById('paymentMethod').value
+                };
+                
+                const response = await fetch('/api/cart/checkout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to create order');
+                }
+                
+                const result = await response.json();
+                
+                alert(`Order placed successfully! Order ID: ${result.order_id}`);
+                window.location.href = '/customer/';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Place Order';
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', loadCheckoutData);
+    </script>
+<script src="{% static 'js/product-links.js' %}"></script>
+</body>
+</html>
