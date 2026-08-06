@@ -1,0 +1,20 @@
+# Python virtual environments
+.venv/
+.venv-1/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment variables
+.env
+
+# SQLite database
+db.sqlite3
+
+# VS Code settings (optional)
+.vscode/
+
+# macOS / Windows junk files
+.DS_Store
+Thumbs.db
