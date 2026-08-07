@@ -33,7 +33,7 @@ def _send_templated_email(subject, template_name, context, to_email):
 
 
 def send_welcome_email(user):
-    """Sent once, right after a new account is created."""
+    
     _send_templated_email(
         subject="Welcome to Perfume Platform!",
         template_name="emails/welcome.html",
@@ -43,7 +43,7 @@ def send_welcome_email(user):
 
 
 def send_order_confirmation_email(order):
-    """Sent once, right after a customer order is created."""
+   
     _send_templated_email(
         subject=f"Order #{order.order_id} confirmed",
         template_name="emails/order_confirmation.html",
@@ -58,11 +58,7 @@ def send_order_confirmation_email(order):
 
 
 def send_shipping_notification_email(order):
-    """
-    Sent by the admin-triggered shipping endpoint (Fuad's Sprint 6 task,
-    "Shipping Email API Endpoint") — exposed here so that view can just
-    call this function instead of duplicating email-sending logic.
-    """
+    
     _send_templated_email(
         subject=f"Order #{order.order_id} has shipped",
         template_name="emails/shipping_notification.html",
@@ -75,11 +71,7 @@ def send_shipping_notification_email(order):
 
 
 def send_password_reset_email(user, reset_token):
-    """
-    Sent when a password reset is requested. Not wired to a signal (there's
-    no PasswordResetToken creation flow yet — see README) — call this
-    directly from that view once it exists.
-    """
+    
     _send_templated_email(
         subject="Reset your Perfume Platform password",
         template_name="emails/password_reset.html",
