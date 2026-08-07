@@ -1,8 +1,3 @@
-/* ══════════════════════════════════════════════════════════════
-   THE LAST NOTE · admin.css
-   Admin Panel — same design tokens as style.css, denser/utilitarian
-   ══════════════════════════════════════════════════════════════ */
-
 :root {
   --c-paper:    #F2EDE6;
   --c-paper2:   #EBE5DD;
@@ -41,7 +36,7 @@ a { color: inherit; text-decoration: none; }
 button { font-family: var(--f-sans); cursor: pointer; }
 input, select, textarea { font-family: var(--f-sans); font-size: 14px; }
 
-/* ── LAYOUT ── */
+
 .admin-shell { display: flex; min-height: 100vh; }
 
 .admin-sidebar {
@@ -98,7 +93,6 @@ input, select, textarea { font-family: var(--f-sans); font-size: 14px; }
 .admin-topbar h1 { font-family: var(--f-serif); font-size: 19px; font-weight: 500; }
 .admin-content { padding: 28px; max-width: 1240px; }
 
-/* ── CARDS / STATS ── */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
 .stat-card {
   background: var(--c-card); border: 1px solid var(--c-rule); border-radius: var(--r);
@@ -120,7 +114,6 @@ input, select, textarea { font-family: var(--f-sans); font-size: 14px; }
 .panel-header h2 { font-family: var(--f-serif); font-size: 16px; font-weight: 500; }
 .panel-body { padding: 22px; }
 
-/* ── BUTTONS ── */
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 9px 18px; border-radius: var(--r); border: none;
@@ -135,7 +128,6 @@ input, select, textarea { font-family: var(--f-sans); font-size: 14px; }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ── TABLE ── */
 .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .admin-table th {
   text-align: left; padding: 10px 12px; font-size: 11px; text-transform: uppercase;
@@ -152,7 +144,6 @@ input, select, textarea { font-family: var(--f-sans); font-size: 14px; }
 .badge-low { background: var(--c-warn-bg); color: var(--c-warn); }
 .badge-off { background: var(--c-danger-bg); color: var(--c-danger); }
 
-/* ── FORMS ── */
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .form-group.full { grid-column: 1 / -1; }
@@ -178,7 +169,6 @@ input, select, textarea { font-family: var(--f-sans); font-size: 14px; }
 }
 .filter-pill.active { background: var(--c-ink); color: #fff; border-color: var(--c-ink); }
 
-/* ── MODAL ── */
 .admin-modal-overlay {
   display: none; position: fixed; inset: 0; background: rgba(15,13,11,0.55);
   z-index: 200; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto;
@@ -196,7 +186,6 @@ input, select, textarea { font-family: var(--f-sans); font-size: 14px; }
 .admin-modal-close { background: none; border: none; font-size: 20px; color: var(--c-smoke); line-height: 1; }
 .admin-modal-body { padding: 22px 24px; }
 
-/* ── TOAST ── */
 #adminToast {
   position: fixed; bottom: 24px; right: 24px; z-index: 300;
   background: var(--c-ink); color: #fff; padding: 12px 20px; border-radius: var(--r);
@@ -214,7 +203,7 @@ input, select, textarea { font-family: var(--f-sans); font-size: 14px; }
 .threshold-control { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-smoke); }
 .threshold-control input { width: 60px; padding: 6px 8px; border: 1px solid var(--c-rule); border-radius: var(--r); }
 
-/* ── LOGIN PAGE ── */
+
 .admin-login-wrap {
   min-height: 100vh; display: flex; align-items: center; justify-content: center;
   background: var(--c-paper);
