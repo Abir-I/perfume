@@ -1,6 +1,7 @@
 # Python virtual environments
 .venv/
 .venv-1/
+venv/
 
 # Python cache
 __pycache__/
@@ -12,7 +13,7 @@ __pycache__/
 # SQLite database
 db.sqlite3
 
-# VS Code settings (optional)
+# VS Code settings
 .vscode/
 
 # macOS / Windows junk files
