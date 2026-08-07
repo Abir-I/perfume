@@ -1,189 +1,109 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Shopping Cart - The Last Note</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - The Last Note | Premium Perfume</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #f8f8f8; font-family: 'DM Sans', sans-serif; }
-        .cart-container { max-width: 1400px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 380px; gap: 30px; }
-        .cart-header { grid-column: 1 / -1; margin-bottom: 30px; }
-        .cart-header h1 { font-family: 'Playfair Display', serif; font-size: 42px; color: #1a1a2e; margin-bottom: 10px; }
-        .cart-header p { color: #666; font-size: 14px; }
-        .cart-items-section { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .cart-items-section h2 { font-family: 'Playfair Display', serif; font-size: 20px; color: #1a1a2e; margin-bottom: 25px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
-        .cart-item { background: white; border: 1px solid #f0f0f0; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 20px; transition: all 0.3s; }
-        .cart-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #d4af37; }
-        .item-image { width: 120px; height: 120px; background: #f5f5f5; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .item-image img { width: 100%; height: 100%; object-fit: cover; }
-        .item-details { flex: 1; }
-        .item-name { font-family: 'Playfair Display', serif; font-size: 18px; color: #1a1a2e; margin-bottom: 4px; }
-        .item-brand { font-size: 13px; color: #d4af37; text-transform: uppercase; }
-        .item-variant { font-size: 12px; color: #999; margin-top: 6px; }
-        .item-price { font-family: 'Playfair Display', serif; font-size: 16px; color: #1a1a2e; font-weight: 600; margin: 12px 0; }
-        .item-controls { display: flex; gap: 15px; margin-top: 15px; }
-        .qty-selector { display: flex; border: 1px solid #e0e0e0; border-radius: 6px; }
-        .qty-btn { width: 36px; height: 36px; background: #f5f5f5; border: none; cursor: pointer; }
-        .qty-btn:hover { background: #d4af37; color: white; }
-        .qty-input { width: 50px; border: none; text-align: center; background: white; }
-        .remove-btn { background: none; border: 1px solid #e74c3c; color: #e74c3c; padding: 8px 16px; cursor: pointer; }
-        .remove-btn:hover { background: #e74c3c; color: white; }
-        .cart-summary { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 20px; }
-        .summary-title { font-family: 'Playfair Display', serif; font-size: 20px; color: #1a1a2e; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
-        .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: #666; }
-        .summary-row.total { border-top: 2px solid #f0f0f0; margin-top: 15px; padding-top: 15px; font-weight: 600; color: #1a1a2e; }
-        .checkout-btn { width: 100%; padding: 14px; background: #d4af37; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; }
-        .checkout-btn:hover { background: #b89c25; }
-        .checkout-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .continue-shopping { display: block; width: 100%; padding: 12px; text-align: center; color: #1a1a2e; border: 2px solid #f0f0f0; border-radius: 8px; text-decoration: none; margin-top: 12px; }
-        .continue-shopping:hover { border-color: #d4af37; color: #d4af37; }
-        .empty-cart { text-align: center; padding: 60px 20px; }
-        .empty-icon { font-size: 80px; margin-bottom: 20px; }
-        .empty-cart h2 { font-size: 24px; color: #1a1a2e; margin-bottom: 10px; }
-        .empty-cart p { color: #666; margin-bottom: 20px; }
-        .shop-link { display: inline-block; padding: 12px 30px; background: #d4af37; color: white; text-decoration: none; border-radius: 6px; }
-        .toast { position: fixed; bottom: 20px; right: 20px; padding: 16px 24px; background: #27ae60; color: white; border-radius: 8px; z-index: 1000; }
-        .toast.error { background: #e74c3c; }
-        @media (max-width: 768px) { .cart-container { grid-template-columns: 1fr; } .cart-summary { position: static; } .cart-item { flex-direction: column; } }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/cart-premium-page.css' %}">
 </head>
 <body>
     {% include 'partials/_navbar.html' %}
-    
-    <div class="cart-container">
-        <div class="cart-header">
-            <h1>Shopping Cart</h1>
-            <p>Review and proceed to checkout</p>
+
+    <!-- PAGE BREADCRUMB -->
+    <nav class="cart-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Shopping Cart</span>
+    </nav>
+
+    <!-- MAIN CART CONTAINER -->
+    <main class="cart-page-container">
+        <div class="cart-page-header">
+            <h1 class="cart-page-title">Your Cart</h1>
+            <p class="cart-page-subtitle">Review your selections and proceed to checkout</p>
         </div>
-        
-        <section class="cart-items-section">
-            <h2>Your Items</h2>
-            <div id="cart-items-list"></div>
-        </section>
-        
-        <aside class="cart-summary">
-            <h2 class="summary-title">Order Summary</h2>
-            <div class="summary-row"><span>Subtotal</span><span id="subtotal">৳0.00</span></div>
-            <div class="summary-row"><span>Tax</span><span id="tax-amount">৳0.00</span></div>
-            <div class="summary-row total"><span>Total</span><span id="total-amount">৳0.00</span></div>
-            <button class="checkout-btn" onclick="proceedToCheckout()">Checkout</button>
-            <a href="/shop/" class="continue-shopping">Continue Shopping</a>
-        </aside>
-    </div>
-    
-    <div id="toast" class="toast" style="display:none;"></div>
-    {% include 'partials/_footer.html' %}
-    
-    <script>
-        const API_BASE_URL = '/api';
-        const TAX_RATE = 0.05;
-        
-        document.addEventListener('DOMContentLoaded', () => loadCart());
-        
-        async function loadCart() {
-            try {
-                const token = localStorage.getItem('access_token');
-                if (!token) { showToast('Login required', 'error'); return; }
-                
-                const response = await fetch(`${API_BASE_URL}/cart/`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (!response.ok) throw new Error('Failed');
-                const data = await response.json();
-                displayCart(data);
-            } catch (error) {
-                showEmptyCart();
-            }
-        }
-        
-        function displayCart(data) {
-            const list = document.getElementById('cart-items-list');
-            const items = data.items || [];
-            
-            if (items.length === 0) { showEmptyCart(); return; }
-            
-            list.innerHTML = items.map(item => `
-                <div class="cart-item">
-                    <div class="item-image">${item.product_image ? `<img src="${item.product_image}">` : '🧴'}</div>
-                    <div class="item-details">
-                        <div class="item-name">${item.product_name}</div>
-                        <div class="item-brand">${item.product_brand || 'Premium'}</div>
-                        <div class="item-variant">Size: ${item.variant || 'Full'} ML</div>
-                        <div class="item-price">৳${item.unit_price} × ${item.quantity} = ৳${item.unit_price * item.quantity}</div>
-                        <div class="item-controls">
-                            <div class="qty-selector">
-                                <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)">−</button>
-                                <input type="number" class="qty-input" value="${item.quantity}" onchange="updateQuantity(${item.id}, this.value - ${item.quantity})">
-                                <button class="qty-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
-                            </div>
-                            <button class="remove-btn" onclick="removeItem(${item.id})">Remove</button>
+
+        <div class="cart-page-grid">
+            <!-- CART ITEMS SECTION -->
+            <section class="cart-items-wrapper">
+                <div id="cartLoadingState" class="cart-loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading your cart...</p>
+                </div>
+
+                <div id="cartEmptyState" class="cart-empty-state" style="display: none;">
+                    <div class="empty-state-icon">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                    </div>
+                    <h2 class="empty-state-title">Your Cart Is Empty</h2>
+                    <p class="empty-state-description">Discover our curated collection of premium fragrances and add your favorites to the cart.</p>
+                    <a href="/shop/" class="empty-state-cta">Continue Shopping</a>
+                </div>
+
+                <div id="cartItemsContainer" class="cart-items-list"></div>
+            </section>
+
+            <!-- CART SUMMARY SIDEBAR -->
+            <aside class="cart-summary-sidebar">
+                <div class="cart-summary-card">
+                    <h2 class="summary-title">Order Summary</h2>
+
+                    <div class="summary-items">
+                        <div class="summary-row">
+                            <span class="summary-label">Subtotal</span>
+                            <span class="summary-value" id="summarySubtotal">$0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Shipping</span>
+                            <span class="summary-value" id="summaryShipping">Free</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Tax</span>
+                            <span class="summary-value" id="summaryTax">$0.00</span>
                         </div>
                     </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-total">
+                        <span class="total-label">Total</span>
+                        <span class="total-amount" id="summaryTotal">$0.00</span>
+                    </div>
+
+                    <button class="checkout-btn" id="checkoutBtn" onclick="proceedToCheckout()">
+                        <span>Proceed to Checkout</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </button>
+
+                    <button class="continue-shopping-btn" onclick="continueShopping()">
+                        Continue Shopping
+                    </button>
+
+                    <div class="cart-note">
+                        <p>🎁 Free shipping on orders over $50</p>
+                        <p>✓ Authentic products guaranteed</p>
+                        <p>💳 Cash on Delivery available</p>
+                    </div>
                 </div>
-            `).join('');
-            
-            updateSummary(data);
-        }
-        
-        function showEmptyCart() {
-            document.getElementById('cart-items-list').innerHTML = `
-                <div class="empty-cart">
-                    <div class="empty-icon">🛍️</div>
-                    <h2>Cart Empty</h2>
-                    <p>Add premium perfumes</p>
-                    <a href="/shop/" class="shop-link">Shop Now</a>
-                </div>`;
-        }
-        
-        async function updateQuantity(itemId, change) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}/update/`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                    },
-                    body: JSON.stringify({ quantity: parseInt(change) })
-                });
-                if (response.ok) { loadCart(); showToast('Updated'); }
-            } catch (error) { showToast('Error', 'error'); }
-        }
-        
-        async function removeItem(itemId) {
-            if (!confirm('Remove?')) return;
-            try {
-                const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}/remove/`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
-                });
-                if (response.ok) { loadCart(); showToast('Removed'); }
-            } catch (error) { showToast('Error', 'error'); }
-        }
-        
-        function updateSummary(data) {
-            const subtotal = data.total_price || 0;
-            const tax = subtotal * TAX_RATE;
-            document.getElementById('subtotal').textContent = `৳${subtotal.toFixed(2)}`;
-            document.getElementById('tax-amount').textContent = `৳${tax.toFixed(2)}`;
-            document.getElementById('total-amount').textContent = `৳${(subtotal + tax).toFixed(2)}`;
-        }
-        
-        function proceedToCheckout() {
-            if (!localStorage.getItem('access_token')) { showToast('Login first', 'error'); return; }
-            window.location.href = '/checkout/';
-        }
-        
-        function showToast(msg, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.className = `toast ${type}`;
-            toast.style.display = 'block';
-            setTimeout(() => toast.style.display = 'none', 3000);
-        }
-    </script>
+            </aside>
+        </div>
+    </main>
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    {% include 'partials/_footer.html' %}
+
+    <!-- PREMIUM CART JAVASCRIPT -->
+    <script src="{% static 'js/cart-premium-page.js' %}"></script>
+    <script src="{% static 'js/product-links.js' %}"></script>
 </body>
 </html>
