@@ -47,7 +47,6 @@
     </main>
   </div>
 
-  <!-- ═══ ADD/EDIT PERFUME MODAL ═══ -->
   <div class="admin-modal-overlay" id="perfumeModalOverlay">
     <div class="admin-modal">
       <div class="admin-modal-header">
@@ -138,7 +137,6 @@
     </div>
   </div>
 
-  <!-- ═══ ADD/EDIT VARIANT MODAL ═══ -->
   <div class="admin-modal-overlay" id="variantModalOverlay">
     <div class="admin-modal">
       <div class="admin-modal-header">
@@ -187,7 +185,6 @@
     </div>
   </div>
 
-  <!-- ═══ IMAGE UPLOAD MODAL ═══ -->
   <div class="admin-modal-overlay" id="imageModalOverlay">
     <div class="admin-modal">
       <div class="admin-modal-header">
@@ -215,7 +212,7 @@
   <script src="{% static 'js/admin.js' %}"></script>
   <script>
     let allBrands = [];
-    let perfumeGroups = []; // [{ perfume_id, perfume_name, brand_name, variants: [...] }]
+    let perfumeGroups = []; 
 
     (async function init() {
       const session = requireAdminSession();
@@ -235,9 +232,7 @@
       const body = document.getElementById('perfumeTableBody');
       body.innerHTML = '<tr><td colspan="6" class="empty-state">Loading…</td></tr>';
       try {
-        // Admin inventory lists every variant regardless of stock/active
-        // status (unlike the customer-facing product list), which is
-        // exactly what product management needs to see.
+      
         const data = await adminApi('/admin/catalog/inventory/?low_stock_threshold=5');
         perfumeGroups = groupByPerfume(data.results);
         renderPerfumeTable(perfumeGroups);
@@ -302,7 +297,7 @@
       }).join('');
     }
 
-    /* ── Search ── */
+   
     document.getElementById('productSearchBtn').addEventListener('click', runSearch);
     document.getElementById('productSearchInput').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
     document.getElementById('productSearchClear').addEventListener('click', () => {
@@ -326,7 +321,7 @@
       }
     }
 
-    /* ── Perfume modal ── */
+
     function openPerfumeModal(perfumeId) {
       const form = document.getElementById('perfumeForm');
       form.reset();
@@ -408,7 +403,6 @@
       }
     }
 
-    /* ── Variant modal ── */
     function openVariantModal(perfumeId, productId) {
       const form = document.getElementById('variantForm');
       form.reset();
@@ -485,7 +479,7 @@
       }
     }
 
-    /* ── Image upload ── */
+  
     function openImageModal(perfumeId) {
       document.getElementById('imgPerfumeId').value = perfumeId;
       document.getElementById('imgFileInput').value = '';
