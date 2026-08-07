@@ -1,15 +1,4 @@
-"""
-Thin wrapper around Django's send_mail, using whatever EMAIL_BACKEND is
-configured in settings.py (console in dev, SendGrid via django-anymail
-once SENDGRID_API_KEY is set — see settings.py and .env.example).
 
-Each function renders an HTML template Abir is building under
-templates/emails/ (see Sprint 6 "Email Templates" tasks) with a plain-text
-fallback generated from the same context. If a template doesn't exist yet,
-sending is skipped with a log line instead of crashing the request that
-triggered it — a missing template shouldn't be able to break checkout or
-registration.
-"""
 import logging
 
 from django.conf import settings
@@ -38,7 +27,7 @@ def _send_templated_email(subject, template_name, context, to_email):
         html_message=html_body,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[to_email],
-        fail_silently=True,  # a failed email must never break the request that triggered it
+        fail_silently=True, 
     )
     return True
 
