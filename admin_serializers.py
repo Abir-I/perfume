@@ -73,7 +73,7 @@ class ProductImageUploadSerializer(serializers.Serializer):
     image = serializers.ImageField()
 
     ALLOWED_CONTENT_TYPES = ('image/jpeg', 'image/png')
-    MAX_SIZE_BYTES = 5 * 1024 * 1024  # 5MB
+    MAX_SIZE_BYTES = 5 * 1024 * 1024  
 
     def validate_image(self, value):
         content_type = getattr(value, 'content_type', '')
