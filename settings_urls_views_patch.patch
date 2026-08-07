@@ -1,0 +1,237 @@
+--- a/perfume_platform/perfume_platform/settings.py	2026-07-26 06:45:43.000000000 +0000
++++ b/perfume_platform/perfume_platform/settings.py	2026-08-07 11:52:20.400041530 +0000
+@@ -1,13 +1,32 @@
++import os
+ from pathlib import Path
+ from datetime import timedelta
+ 
+ BASE_DIR = Path(__file__).resolve().parent.parent
+ 
+-SECRET_KEY = 'django-insecure-88szh(@55*v7ritsi4=+1k%tns0cj)wc66qt0-i(ouzlrj)3nv'
++# Loads a local .env file if python-dotenv is installed and one exists.
++# In real production (Heroku/DigitalOcean/etc.) env vars are normally
++# injected by the platform directly, so this is a no-op there — it's
++# just a local-dev convenience. See .env.example at the repo root.
++try:
++    from dotenv import load_dotenv
++    load_dotenv(BASE_DIR.parent / '.env')
++except ImportError:
++    pass
+ 
+-DEBUG = True
+ 
+-ALLOWED_HOSTS = []
++def env_bool(name, default):
++    value = os.environ.get(name)
++    if value is None:
++        return default
++    return value.strip().lower() in ('1', 'true', 'yes', 'on')
++
++
++SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-88szh(@55*v7ritsi4=+1k%tns0cj)wc66qt0-i(ouzlrj)3nv')
++
++DEBUG = env_bool('DEBUG', True)
++
++ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
+ 
+ INSTALLED_APPS = [
+     'django.contrib.admin',
+@@ -22,6 +41,8 @@
+     'catalog',
+     'cart',
+     'orders',
++    'reviews',
++    'notifications',
+ ]
+ 
+ MIDDLEWARE = [
+@@ -54,14 +75,27 @@
+ 
+ WSGI_APPLICATION = 'perfume_platform.wsgi.application'
+ 
++# --- Database ---------------------------------------------------------
++# DB_ENGINE switches between MySQL (current) and PostgreSQL (Sprint 6
++# target) without touching code — set DB_ENGINE=postgres once the new
++# database is ready. Defaults reproduce the original hardcoded MySQL
++# config exactly, so this is a no-op until env vars are actually set.
++DB_ENGINE = os.environ.get('DB_ENGINE', 'mysql')
++_DB_BACKENDS = {
++    'mysql': 'django.db.backends.mysql',
++    'postgres': 'django.db.backends.postgresql',
++    'postgresql': 'django.db.backends.postgresql',
++}
++_DEFAULT_DB_PORT = '5432' if DB_ENGINE.startswith('postgres') else '3306'
++
+ DATABASES = {
+     'default': {
+-        'ENGINE': 'django.db.backends.mysql',
+-        'NAME': 'perfume_platform',
+-        'USER': 'root',
+-        'PASSWORD': '',
+-        'HOST': 'localhost',
+-        'PORT': '3306',
++        'ENGINE': _DB_BACKENDS.get(DB_ENGINE, 'django.db.backends.mysql'),
++        'NAME': os.environ.get('DB_NAME', 'perfume_platform'),
++        'USER': os.environ.get('DB_USER', 'root'),
++        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
++        'HOST': os.environ.get('DB_HOST', 'localhost'),
++        'PORT': os.environ.get('DB_PORT', _DEFAULT_DB_PORT),
+     }
+ }
+ 
+@@ -91,4 +125,95 @@
+ SIMPLE_JWT = {
+     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+-}
+\ No newline at end of file
++}
++
++# --- Email (Sprint 6, Phase 1) -----------------------------------------
++# Uses SendGrid via django-anymail. Falls back to printing emails to the
++# console if SENDGRID_API_KEY isn't set, so nothing breaks in local dev
++# before a real account exists (see README for account setup steps that
++# have to happen outside code).
++SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
++DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@perfumeplatform.example')
++
++if SENDGRID_API_KEY:
++    EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
++    ANYMAIL = {'SENDGRID_API_KEY': SENDGRID_API_KEY}
++    if 'anymail' not in INSTALLED_APPS:
++        INSTALLED_APPS.append('anymail')
++else:
++    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
++
++# --- Cache / Redis (Sprint 6, Phase 5) ---------------------------------
++# Falls back to Django's local-memory cache if REDIS_URL isn't set, so
++# caching code (catalog views) still works without a real Redis instance.
++REDIS_URL = os.environ.get('REDIS_URL', '')
++
++if REDIS_URL:
++    CACHES = {
++        'default': {
++            'BACKEND': 'django_redis.cache.RedisCache',
++            'LOCATION': REDIS_URL,
++            'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'},
++        }
++    }
++else:
++    CACHES = {
++        'default': {
++            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
++        }
++    }
++
++CATALOG_CACHE_SECONDS = int(os.environ.get('CATALOG_CACHE_SECONDS', 60))
++
++# --- Error monitoring (Sprint 6, Phase 3) ------------------------------
++SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
++
++if SENTRY_DSN:
++    import sentry_sdk
++    from sentry_sdk.integrations.django import DjangoIntegration
++
++    sentry_sdk.init(
++        dsn=SENTRY_DSN,
++        integrations=[DjangoIntegration()],
++        traces_sample_rate=float(os.environ.get('SENTRY_TRACES_SAMPLE_RATE', 0.1)),
++        send_default_pii=False,
++    )
++
++LOGGING = {
++    'version': 1,
++    'disable_existing_loggers': False,
++    'handlers': {
++        'console': {'class': 'logging.StreamHandler'},
++    },
++    'root': {
++        'handlers': ['console'],
++        'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
++    },
++    'loggers': {
++        'django.request': {
++            'handlers': ['console'],
++            'level': 'ERROR',
++            'propagate': False,
++        },
++    },
++}
++
++# --- Production hardening (Sprint 6, Phase 3 & 4) ----------------------
++# Only applies when DEBUG=False, so local development is unaffected.
++if not DEBUG:
++    SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', True)
++    SESSION_COOKIE_SECURE = True
++    CSRF_COOKIE_SECURE = True
++    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', 60 * 60 * 24 * 30))  # 30 days
++    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
++    SECURE_HSTS_PRELOAD = True
++    SECURE_CONTENT_TYPE_NOSNIFF = True
++    X_FRAME_OPTIONS = 'DENY'
++    SECURE_REFERRER_POLICY = 'same-origin'
++    # CORS_ALLOW_ALL_ORIGINS = True above is fine for dev but far too
++    # permissive for production — lock it down via env once the real
++    # frontend domain is known.
++    CORS_ALLOW_ALL_ORIGINS = False
++    CORS_ALLOWED_ORIGINS = [
++        o.strip() for o in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if o.strip()
++    ]
+--- a/perfume_platform/perfume_platform/urls.py	2026-07-26 06:45:43.000000000 +0000
++++ b/perfume_platform/perfume_platform/urls.py	2026-08-07 11:56:21.832273780 +0000
+@@ -6,8 +6,22 @@
+     path('', lambda request: render(request, 'home.html')),
+     path('shop/', lambda request: render(request, 'shop.html')),
+     path('admin/', admin.site.urls),
++
++    # Custom "super admin" dashboard for managing perfumes/products —
++    # namespaced under admin-panel/ (not admin/) so it doesn't collide
++    # with Django's own built-in admin site above. These are plain
++    # template views; the actual CRUD happens client-side against the
++    # /api/admin/catalog/ endpoints, same as shop.html does for the
++    # customer-facing catalog.
++    path('admin-panel/login/', lambda request: render(request, 'admin/login.html')),
++    path('admin-panel/', lambda request: render(request, 'admin/dashboard.html')),
++    path('admin-panel/products/', lambda request: render(request, 'admin/products.html')),
++    path('admin-panel/inventory/', lambda request: render(request, 'admin/inventory.html')),
++
+     path('api/accounts/', include('accounts.urls')),
+     path('api/catalog/', include('catalog.urls')),
++    path('api/admin/catalog/', include('catalog.admin_urls')),
+     path('api/cart/', include('cart.urls')),
+     path('api/orders/', include('orders.urls')),
++    path('api/reviews/', include('reviews.urls')),
+ ]
+\ No newline at end of file
+--- a/perfume_platform/catalog/views.py	2026-07-26 06:45:43.000000000 +0000
++++ b/perfume_platform/catalog/views.py	2026-08-07 11:52:20.402376988 +0000
+@@ -1,11 +1,21 @@
+ from rest_framework.views import APIView
+ from rest_framework.response import Response
+ from rest_framework import status
++from django.conf import settings
+ from django.db.models import Q
++from django.utils.decorators import method_decorator
++from django.views.decorators.cache import cache_page
+ from accounts.models import Brand, Perfume, Product
+ from .serializers import BrandSerializer, PerfumeSerializer, ProductSerializer
+ 
+ 
++# Sprint 6 "Redis Cache Setup": brand list and product list are read
++# constantly and change rarely (only on an admin add/edit/delete), so
++# they're cached for CATALOG_CACHE_SECONDS (default 60s, see settings.py
++# and .env.example). Uses whatever CACHES backend is configured — Redis
++# once REDIS_URL is set, otherwise Django's in-memory cache, so this is
++# safe even before a real Redis instance exists.
++@method_decorator(cache_page(settings.CATALOG_CACHE_SECONDS), name='get')
+ class BrandListView(APIView):
+     """
+     GET /api/catalog/brands/
+@@ -20,6 +30,7 @@
+         }, status=status.HTTP_200_OK)
+ 
+ 
++@method_decorator(cache_page(settings.CATALOG_CACHE_SECONDS), name='get')
+ class ProductListView(APIView):
+     """
+     GET /api/catalog/products/

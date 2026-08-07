@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inventory — Admin — The Last Note</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}"/>
+</head>
+<body>
+
+  <div class="admin-shell">
+    {% include 'admin/_sidebar.html' %}
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <h1>Inventory</h1>
+        <div class="threshold-control">
+          Low stock at or below
+          <input type="number" id="thresholdInput" value="5" min="0"/>
+          units
+          <button class="btn btn-ghost btn-sm" id="thresholdApplyBtn">Apply</button>
+        </div>
+      </div>
+
+      <div class="admin-content">
+        <div class="stat-grid" id="invStatGrid">
+          <div class="stat-card"><div class="stat-label">Total Variants</div><div class="stat-value">—</div></div>
+          <div class="stat-card alert"><div class="stat-label">Low Stock</div><div class="stat-value">—</div></div>
+          <div class="stat-card"><div class="stat-label">Inactive Variants</div><div class="stat-value">—</div></div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-bottom:16px;">
+          <button class="filter-pill active" data-filter="all">All</button>
+          <button class="filter-pill" data-filter="low">Low Stock Only</button>
+          <button class="filter-pill" data-filter="inactive">Inactive Only</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-body" style="padding:0;">
+            <table class="admin-table">
+              <thead>
+                <tr><th>Perfume</th><th>Brand</th><th>Type</th><th>Volume</th><th>Stock</th><th>Status</th></tr>
+              </thead>
+              <tbody id="inventoryBody">
+                <tr><td colspan="6" class="empty-state">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="adminToast"></div>
+
+  <script src="{% static 'js/admin.js' %}"></script>
+  <script>
+    let inventoryRows = [];
+    let activeFilter = 'all';
+
+    (async function init() {
+      const session = requireAdminSession();
+      if (!session) return;
+      await loadInventory();
+    })();
+
+    async function loadInventory() {
+      const threshold = document.getElementById('thresholdInput').value || 5;
+      const body = document.getElementById('inventoryBody');
+      body.innerHTML = '<tr><td colspan="6" class="empty-state">Loading…</td></tr>';
+      try {
+        const data = await adminApi(`/admin/catalog/inventory/?low_stock_threshold=${threshold}`);
+        inventoryRows = data.results;
+
+        const cards = document.querySelectorAll('#invStatGrid .stat-card');
+        cards[0].querySelector('.stat-value').textContent = data.count;
+        cards[1].querySelector('.stat-value').textContent = data.low_stock_count;
+        cards[2].querySelector('.stat-value').textContent = inventoryRows.filter(r => !r.is_active).length;
+
+        renderInventory();
+      } catch (err) {
+        body.innerHTML = `<tr><td colspan="6" class="empty-state">${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    document.getElementById('thresholdApplyBtn').addEventListener('click', loadInventory);
+    document.getElementById('thresholdInput').addEventListener('keydown', e => { if (e.key === 'Enter') loadInventory(); });
+
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeFilter = pill.dataset.filter;
+        renderInventory();
+      });
+    });
+
+    function renderInventory() {
+      let rows = inventoryRows;
+      if (activeFilter === 'low') rows = rows.filter(r => r.low_stock);
+      if (activeFilter === 'inactive') rows = rows.filter(r => !r.is_active);
+
+      const body = document.getElementById('inventoryBody');
+      if (!rows.length) {
+        body.innerHTML = '<tr><td colspan="6" class="empty-state">Nothing to show.</td></tr>';
+        return;
+      }
+      body.innerHTML = rows.map(r => `
+        <tr>
+          <td>${escapeHtml(r.perfume_name)}</td>
+          <td>${escapeHtml(r.brand_name)}</td>
+          <td>${escapeHtml(r.product_type)}</td>
+          <td>${r.volume_ml}ml</td>
+          <td>${r.stock_quantity}</td>
+          <td>
+            ${!r.is_active ? '<span class="badge badge-off">Inactive</span>' : (r.low_stock ? '<span class="badge badge-low">Low Stock</span>' : '<span class="badge badge-ok">In Stock</span>')}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+  </script>
+</body>
+</html>

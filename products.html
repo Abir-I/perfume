@@ -1,0 +1,535 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Products — Admin — The Last Note</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}"/>
+</head>
+<body>
+
+  <div class="admin-shell">
+    {% include 'admin/_sidebar.html' %}
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <h1>Products</h1>
+        <button class="btn btn-brass" onclick="openPerfumeModal()">+ Add Perfume</button>
+      </div>
+
+      <div class="admin-content">
+        <div class="search-row">
+          <input type="text" id="productSearchInput" placeholder="Search by perfume name, brand, or concentration…"/>
+          <button class="btn btn-ghost" id="productSearchBtn">Search</button>
+          <button class="btn btn-ghost" id="productSearchClear" style="display:none;">Clear</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2 id="productsPanelTitle">All Perfumes</h2>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <table class="admin-table">
+              <thead>
+                <tr><th></th><th>Perfume</th><th>Brand</th><th>Variants</th><th>Total Stock</th><th style="width:1%;"></th></tr>
+              </thead>
+              <tbody id="perfumeTableBody">
+                <tr><td colspan="6" class="empty-state">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ═══ ADD/EDIT PERFUME MODAL ═══ -->
+  <div class="admin-modal-overlay" id="perfumeModalOverlay">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <h3 id="perfumeModalTitle">Add Perfume</h3>
+        <button class="admin-modal-close" onclick="closePerfumeModal()">&times;</button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="perfumeForm">
+          <input type="hidden" id="pfPerfumeId"/>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Brand</label>
+              <select id="pfBrandId" required></select>
+            </div>
+            <div class="form-group">
+              <label>Perfume Name</label>
+              <input type="text" id="pfPerfumeName" required maxlength="200"/>
+            </div>
+            <div class="form-group">
+              <label>Concentration</label>
+              <select id="pfConcentration" required>
+                <option value="EDT">EDT</option>
+                <option value="EDP">EDP</option>
+                <option value="Parfum">Parfum</option>
+                <option value="EDC">EDC</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Target Gender</label>
+              <select id="pfTargetGender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Unisex">Unisex</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Recommended Season</label>
+              <select id="pfSeason">
+                <option value="">—</option>
+                <option value="Spring">Spring</option>
+                <option value="Summer">Summer</option>
+                <option value="Fall">Fall</option>
+                <option value="Winter">Winter</option>
+                <option value="All Season">All Season</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Sillage</label>
+              <select id="pfSillage">
+                <option value="">—</option>
+                <option value="Intimate">Intimate</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Strong">Strong</option>
+                <option value="Beast">Beast</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Longevity (hours)</label>
+              <input type="number" id="pfLongevity" min="0" max="24" step="0.5"/>
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+            </div>
+            <div class="form-group full">
+              <label>Top Notes</label>
+              <input type="text" id="pfTopNotes" maxlength="255"/>
+            </div>
+            <div class="form-group full">
+              <label>Middle Notes</label>
+              <input type="text" id="pfMiddleNotes" maxlength="255"/>
+            </div>
+            <div class="form-group full">
+              <label>Base Notes</label>
+              <input type="text" id="pfBaseNotes" maxlength="255"/>
+            </div>
+            <div class="form-group full">
+              <label>Description</label>
+              <textarea id="pfDescription"></textarea>
+            </div>
+          </div>
+          <div class="field-error-text" id="perfumeFormError"></div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" onclick="closePerfumeModal()">Cancel</button>
+            <button type="submit" class="btn btn-brass" id="perfumeFormSubmit">Save Perfume</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ADD/EDIT VARIANT MODAL ═══ -->
+  <div class="admin-modal-overlay" id="variantModalOverlay">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <h3 id="variantModalTitle">Add Variant</h3>
+        <button class="admin-modal-close" onclick="closeVariantModal()">&times;</button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="variantForm">
+          <input type="hidden" id="vfPerfumeId"/>
+          <input type="hidden" id="vfProductId"/>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Type</label>
+              <select id="vfProductType" required>
+                <option value="decant">Decant</option>
+                <option value="full_size">Full Size</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Volume (ml)</label>
+              <input type="number" id="vfVolumeMl" min="0.01" step="0.01" required/>
+            </div>
+            <div class="form-group">
+              <label>Price (৳)</label>
+              <input type="number" id="vfPrice" min="0.01" step="0.01" required/>
+            </div>
+            <div class="form-group">
+              <label>Stock Quantity</label>
+              <input type="number" id="vfStockQuantity" min="0" step="1" required/>
+            </div>
+            <div class="form-group">
+              <label>Active</label>
+              <select id="vfIsActive">
+                <option value="true">Yes — visible in shop</option>
+                <option value="false">No — hidden</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-error-text" id="variantFormError"></div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" onclick="closeVariantModal()">Cancel</button>
+            <button type="submit" class="btn btn-brass" id="variantFormSubmit">Save Variant</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ IMAGE UPLOAD MODAL ═══ -->
+  <div class="admin-modal-overlay" id="imageModalOverlay">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <h3>Upload Image</h3>
+        <button class="admin-modal-close" onclick="closeImageModal()">&times;</button>
+      </div>
+      <div class="admin-modal-body">
+        <input type="hidden" id="imgPerfumeId"/>
+        <div class="form-group full">
+          <label>JPG or PNG, up to 5MB</label>
+          <input type="file" id="imgFileInput" accept="image/jpeg,image/png"/>
+        </div>
+        <img id="imgPreview" style="max-width:100%; border-radius:4px; margin-top:10px; display:none;"/>
+        <div class="field-error-text" id="imageFormError"></div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" onclick="closeImageModal()">Cancel</button>
+          <button type="button" class="btn btn-brass" id="imageUploadSubmit">Upload</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="adminToast"></div>
+
+  <script src="{% static 'js/admin.js' %}"></script>
+  <script>
+    let allBrands = [];
+    let perfumeGroups = []; // [{ perfume_id, perfume_name, brand_name, variants: [...] }]
+
+    (async function init() {
+      const session = requireAdminSession();
+      if (!session) return;
+      await loadBrands();
+      await loadPerfumes();
+    })();
+
+    async function loadBrands() {
+      const data = await adminApi('/catalog/brands/');
+      allBrands = data.results || data;
+      const select = document.getElementById('pfBrandId');
+      select.innerHTML = allBrands.map(b => `<option value="${b.brand_id}">${escapeHtml(b.brand_name)}</option>`).join('');
+    }
+
+    async function loadPerfumes() {
+      const body = document.getElementById('perfumeTableBody');
+      body.innerHTML = '<tr><td colspan="6" class="empty-state">Loading…</td></tr>';
+      try {
+        // Admin inventory lists every variant regardless of stock/active
+        // status (unlike the customer-facing product list), which is
+        // exactly what product management needs to see.
+        const data = await adminApi('/admin/catalog/inventory/?low_stock_threshold=5');
+        perfumeGroups = groupByPerfume(data.results);
+        renderPerfumeTable(perfumeGroups);
+      } catch (err) {
+        body.innerHTML = `<tr><td colspan="6" class="empty-state">${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    function groupByPerfume(rows) {
+      const map = new Map();
+      for (const r of rows) {
+        if (!map.has(r.perfume_id)) {
+          map.set(r.perfume_id, { perfume_id: r.perfume_id, perfume_name: r.perfume_name, brand_name: r.brand_name, variants: [] });
+        }
+        map.get(r.perfume_id).variants.push(r);
+      }
+      return Array.from(map.values()).sort((a, b) => a.perfume_name.localeCompare(b.perfume_name));
+    }
+
+    function renderPerfumeTable(groups) {
+      const body = document.getElementById('perfumeTableBody');
+      if (!groups.length) {
+        body.innerHTML = '<tr><td colspan="6" class="empty-state">No perfumes yet — add your first one.</td></tr>';
+        return;
+      }
+      body.innerHTML = groups.map(g => {
+        const totalStock = g.variants.reduce((sum, v) => sum + v.stock_quantity, 0);
+        const variantRows = g.variants.map(v => `
+          <tr style="background:rgba(184,151,106,0.03);">
+            <td></td>
+            <td colspan="2" style="padding-left:32px; color:var(--c-smoke);">
+              ${escapeHtml(v.product_type)} · ${v.volume_ml}ml
+            </td>
+            <td>${v.stock_quantity}
+              ${v.low_stock ? '<span class="badge badge-low" style="margin-left:6px;">Low</span>' : ''}
+              ${!v.is_active ? '<span class="badge badge-off" style="margin-left:6px;">Inactive</span>' : ''}
+            </td>
+            <td></td>
+            <td class="row-actions">
+              <button class="btn btn-ghost btn-sm" onclick="openVariantModal(${g.perfume_id}, ${v.product_id})">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deactivateVariant(${v.product_id})">Deactivate</button>
+            </td>
+          </tr>
+        `).join('');
+
+        return `
+          <tr>
+            <td></td>
+            <td><strong>${escapeHtml(g.perfume_name)}</strong></td>
+            <td>${escapeHtml(g.brand_name)}</td>
+            <td>${g.variants.length}</td>
+            <td>${totalStock}</td>
+            <td class="row-actions">
+              <button class="btn btn-ghost btn-sm" onclick="openPerfumeModal(${g.perfume_id})">Edit</button>
+              <button class="btn btn-ghost btn-sm" onclick="openVariantModal(${g.perfume_id})">+ Variant</button>
+              <button class="btn btn-ghost btn-sm" onclick="openImageModal(${g.perfume_id})">Image</button>
+              <button class="btn btn-danger btn-sm" onclick="deactivatePerfume(${g.perfume_id})">Deactivate</button>
+            </td>
+          </tr>
+          ${variantRows}
+        `;
+      }).join('');
+    }
+
+    /* ── Search ── */
+    document.getElementById('productSearchBtn').addEventListener('click', runSearch);
+    document.getElementById('productSearchInput').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
+    document.getElementById('productSearchClear').addEventListener('click', () => {
+      document.getElementById('productSearchInput').value = '';
+      document.getElementById('productSearchClear').style.display = 'none';
+      document.getElementById('productsPanelTitle').textContent = 'All Perfumes';
+      renderPerfumeTable(perfumeGroups);
+    });
+
+    async function runSearch() {
+      const q = document.getElementById('productSearchInput').value.trim();
+      if (!q) return;
+      try {
+        const data = await adminApi(`/admin/catalog/search/?q=${encodeURIComponent(q)}`);
+        const matchedIds = new Set(data.results.map(r => r.perfume_id));
+        document.getElementById('productSearchClear').style.display = 'inline-flex';
+        document.getElementById('productsPanelTitle').textContent = `Search: "${q}" (${data.count})`;
+        renderPerfumeTable(perfumeGroups.filter(g => matchedIds.has(g.perfume_id)));
+      } catch (err) {
+        showAdminToast(err.message, 'error');
+      }
+    }
+
+    /* ── Perfume modal ── */
+    function openPerfumeModal(perfumeId) {
+      const form = document.getElementById('perfumeForm');
+      form.reset();
+      document.getElementById('perfumeFormError').classList.remove('show');
+      document.getElementById('pfPerfumeId').value = perfumeId || '';
+
+      if (perfumeId) {
+        document.getElementById('perfumeModalTitle').textContent = 'Edit Perfume';
+        adminApi(`/admin/catalog/perfumes/${perfumeId}/`).then(p => {
+          document.getElementById('pfBrandId').value = p.brand_id ?? p.brand;
+          document.getElementById('pfPerfumeName').value = p.perfume_name;
+          document.getElementById('pfConcentration').value = p.concentration;
+          document.getElementById('pfTargetGender').value = p.target_gender;
+          document.getElementById('pfSeason').value = p.recommended_season || '';
+          document.getElementById('pfSillage').value = p.sillage || '';
+          document.getElementById('pfLongevity').value = p.longevity_hours || '';
+          document.getElementById('pfTopNotes').value = p.top_notes || '';
+          document.getElementById('pfMiddleNotes').value = p.middle_notes || '';
+          document.getElementById('pfBaseNotes').value = p.base_notes || '';
+          document.getElementById('pfDescription').value = p.description || '';
+        }).catch(err => showAdminToast(err.message, 'error'));
+      } else {
+        document.getElementById('perfumeModalTitle').textContent = 'Add Perfume';
+      }
+      document.getElementById('perfumeModalOverlay').classList.add('show');
+    }
+    function closePerfumeModal() {
+      document.getElementById('perfumeModalOverlay').classList.remove('show');
+    }
+
+    document.getElementById('perfumeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById('perfumeFormError');
+      errorEl.classList.remove('show');
+      const perfumeId = document.getElementById('pfPerfumeId').value;
+
+      const payload = {
+        brand_id: Number(document.getElementById('pfBrandId').value),
+        perfume_name: document.getElementById('pfPerfumeName').value.trim(),
+        concentration: document.getElementById('pfConcentration').value,
+        target_gender: document.getElementById('pfTargetGender').value,
+        recommended_season: document.getElementById('pfSeason').value,
+        sillage: document.getElementById('pfSillage').value,
+        longevity_hours: document.getElementById('pfLongevity').value || null,
+        top_notes: document.getElementById('pfTopNotes').value,
+        middle_notes: document.getElementById('pfMiddleNotes').value,
+        base_notes: document.getElementById('pfBaseNotes').value,
+        description: document.getElementById('pfDescription').value,
+      };
+
+      const btn = document.getElementById('perfumeFormSubmit');
+      btn.disabled = true;
+      try {
+        if (perfumeId) {
+          await adminApi(`/admin/catalog/perfumes/${perfumeId}/`, { method: 'PUT', body: payload });
+          showAdminToast('Perfume updated.', 'success');
+        } else {
+          await adminApi('/admin/catalog/perfumes/', { method: 'POST', body: payload });
+          showAdminToast('Perfume created.', 'success');
+        }
+        closePerfumeModal();
+        await loadPerfumes();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.add('show');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    async function deactivatePerfume(perfumeId) {
+      if (!confirm('Deactivate this perfume and all its variants? It will disappear from the shop.')) return;
+      try {
+        await adminApi(`/admin/catalog/perfumes/${perfumeId}/`, { method: 'DELETE' });
+        showAdminToast('Perfume deactivated.', 'success');
+        await loadPerfumes();
+      } catch (err) {
+        showAdminToast(err.message, 'error');
+      }
+    }
+
+    /* ── Variant modal ── */
+    function openVariantModal(perfumeId, productId) {
+      const form = document.getElementById('variantForm');
+      form.reset();
+      document.getElementById('variantFormError').classList.remove('show');
+      document.getElementById('vfPerfumeId').value = perfumeId;
+      document.getElementById('vfProductId').value = productId || '';
+
+      if (productId) {
+        document.getElementById('variantModalTitle').textContent = 'Edit Variant';
+        const group = perfumeGroups.find(g => g.perfume_id === perfumeId);
+        const variant = group?.variants.find(v => v.product_id === productId);
+        if (variant) {
+          document.getElementById('vfProductType').value = variant.product_type;
+          document.getElementById('vfVolumeMl').value = variant.volume_ml;
+          document.getElementById('vfStockQuantity').value = variant.stock_quantity;
+          document.getElementById('vfIsActive').value = String(!!variant.is_active);
+          // price isn't in the inventory listing — fetch the real row
+          adminApi(`/catalog/products/${productId}/`).then(p => {
+            document.getElementById('vfPrice').value = p.price;
+          }).catch(() => {});
+        }
+      } else {
+        document.getElementById('variantModalTitle').textContent = 'Add Variant';
+      }
+      document.getElementById('variantModalOverlay').classList.add('show');
+    }
+    function closeVariantModal() {
+      document.getElementById('variantModalOverlay').classList.remove('show');
+    }
+
+    document.getElementById('variantForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById('variantFormError');
+      errorEl.classList.remove('show');
+      const perfumeId = document.getElementById('vfPerfumeId').value;
+      const productId = document.getElementById('vfProductId').value;
+
+      const payload = {
+        product_type: document.getElementById('vfProductType').value,
+        volume_ml: Number(document.getElementById('vfVolumeMl').value),
+        price: Number(document.getElementById('vfPrice').value),
+        stock_quantity: Number(document.getElementById('vfStockQuantity').value),
+        is_active: document.getElementById('vfIsActive').value === 'true',
+      };
+
+      const btn = document.getElementById('variantFormSubmit');
+      btn.disabled = true;
+      try {
+        if (productId) {
+          await adminApi(`/admin/catalog/products/${productId}/`, { method: 'PUT', body: payload });
+          showAdminToast('Variant updated.', 'success');
+        } else {
+          await adminApi(`/admin/catalog/perfumes/${perfumeId}/variants/`, { method: 'POST', body: payload });
+          showAdminToast('Variant added.', 'success');
+        }
+        closeVariantModal();
+        await loadPerfumes();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.add('show');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    async function deactivateVariant(productId) {
+      if (!confirm('Deactivate this variant? It will disappear from the shop.')) return;
+      try {
+        await adminApi(`/admin/catalog/products/${productId}/`, { method: 'DELETE' });
+        showAdminToast('Variant deactivated.', 'success');
+        await loadPerfumes();
+      } catch (err) {
+        showAdminToast(err.message, 'error');
+      }
+    }
+
+    /* ── Image upload ── */
+    function openImageModal(perfumeId) {
+      document.getElementById('imgPerfumeId').value = perfumeId;
+      document.getElementById('imgFileInput').value = '';
+      document.getElementById('imgPreview').style.display = 'none';
+      document.getElementById('imageFormError').classList.remove('show');
+      document.getElementById('imageModalOverlay').classList.add('show');
+    }
+    function closeImageModal() {
+      document.getElementById('imageModalOverlay').classList.remove('show');
+    }
+    document.getElementById('imgFileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      const preview = document.getElementById('imgPreview');
+      if (!file) { preview.style.display = 'none'; return; }
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = 'block';
+    });
+    document.getElementById('imageUploadSubmit').addEventListener('click', async () => {
+      const perfumeId = document.getElementById('imgPerfumeId').value;
+      const file = document.getElementById('imgFileInput').files[0];
+      const errorEl = document.getElementById('imageFormError');
+      errorEl.classList.remove('show');
+      if (!file) { errorEl.textContent = 'Choose a file first.'; errorEl.classList.add('show'); return; }
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const btn = document.getElementById('imageUploadSubmit');
+      btn.disabled = true;
+      try {
+        await adminApi(`/admin/catalog/perfumes/${perfumeId}/image/`, { method: 'POST', body: formData, isForm: true });
+        showAdminToast('Image uploaded.', 'success');
+        closeImageModal();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.add('show');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+  </script>
+</body>
+</html>

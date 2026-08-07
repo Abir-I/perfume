@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login — The Last Note</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}"/>
+</head>
+<body>
+
+  <div class="admin-login-wrap">
+    <div class="admin-login-card">
+      <div class="admin-login-logo">The <span>Last Note</span></div>
+      <div class="admin-login-sub">Admin Panel</div>
+
+      <form id="adminLoginForm" novalidate>
+        <div class="form-group">
+          <label for="adminEmail">Email</label>
+          <input type="email" id="adminEmail" autocomplete="username" required/>
+        </div>
+        <div class="form-group">
+          <label for="adminPassword">Password</label>
+          <input type="password" id="adminPassword" autocomplete="current-password" required/>
+        </div>
+        <div class="form-error" id="adminLoginError"></div>
+        <button type="submit" class="btn btn-brass" style="width:100%; justify-content:center; margin-top:8px;" id="adminLoginBtn">
+          Log In
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="adminToast"></div>
+
+  <script>
+    const LOGIN_API_BASE = 'http://127.0.0.1:8000/api';
+
+    // Already have a valid session? Skip straight to the dashboard.
+    (function redirectIfLoggedIn() {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+      try {
+        const payload = JSON.parse(decodeURIComponent(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')).split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('')));
+        if (payload.exp && Date.now() < payload.exp * 1000) {
+          window.location.href = '/admin-panel/';
+        }
+      } catch { /* malformed token, just show the login form */ }
+    })();
+
+    document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const errorEl = document.getElementById('adminLoginError');
+      const btn = document.getElementById('adminLoginBtn');
+      errorEl.textContent = '';
+
+      if (!email || !password) {
+        errorEl.textContent = 'Please enter both email and password.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Logging in…';
+
+      try {
+        const res = await fetch(`${LOGIN_API_BASE}/accounts/login/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.access) {
+          errorEl.textContent = data.error || 'Login failed. Check your credentials.';
+          return;
+        }
+
+        // Same keys the storefront's login modal uses, so a session
+        // started here also works on the main site and vice versa.
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('token', data.access);
+        localStorage.setItem('user', JSON.stringify({
+          id: data.user_id, name: data.full_name, email: data.email,
+        }));
+
+        // The server is the real authority on admin access — this
+        // request just doubles as an immediate, friendly check so a
+        // non-admin gets a clear message here instead of bouncing
+        // around the dashboard first.
+        const check = await fetch(`${LOGIN_API_BASE}/admin/catalog/inventory/?low_stock_threshold=999999`, {
+          headers: { 'Authorization': `Bearer ${data.access}` },
+        });
+
+        if (check.status === 403) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          errorEl.textContent = "This account doesn't have admin access.";
+          return;
+        }
+
+        window.location.href = '/admin-panel/';
+      } catch (err) {
+        errorEl.textContent = 'Network error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Log In';
+      }
+    });
+  </script>
+</body>
+</html>

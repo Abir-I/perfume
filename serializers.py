@@ -1,87 +1,47 @@
 from rest_framework import serializers
 
-
-from accounts.models import Brand, Product
-
-
-class BrandListSerializer(serializers.ModelSerializer):
-    """Brand List Feature — full list of brands, for filters/menus."""
-
-    class Meta:
-        model = Brand
-        fields = ['brand_id', 'brand_name', 'country_of_origin']
+from accounts.models import Product, Review
 
 
-class ProductListSerializer(serializers.ModelSerializer):
-    """
-    Product Browsing Feature — one row per product (a specific bottle
-    size/type of a perfume), with just enough info for a listing card.
-    """
-    perfume_id = serializers.IntegerField(source='perfume.perfume_id', read_only=True)
-    perfume_name = serializers.CharField(source='perfume.perfume_name', read_only=True)
-    brand_id = serializers.IntegerField(source='perfume.brand.brand_id', read_only=True)
-    brand_name = serializers.CharField(source='perfume.brand.brand_name', read_only=True)
-    image_url = serializers.CharField(source='perfume.image_url', read_only=True)
+class ReviewSerializer(serializers.ModelSerializer):
+    """Output shape for a single review."""
+    user_name = serializers.SerializerMethodField()
 
     class Meta:
-        model = Product
+        model = Review
         fields = [
+            'review_id',
             'product_id',
-            'perfume_id',
-            'perfume_name',
-            'brand_id',
-            'brand_name',
-            'product_type',
-            'volume_ml',
-            'price',
-            'stock_quantity',
-            'image_url',
+            'user_name',
+            'rating',
+            'comment',
+            'created_at',
+            'is_verified_purchase',
         ]
 
+    def get_user_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}".strip()
 
-class ProductDetailSerializer(serializers.ModelSerializer):
-    """
-    Single Product Page Feature — everything about one product in a
-    single response: brand, notes, price, and the rest of the perfume
-    detail, so the frontend only needs one request per page.
-    """
-    perfume_id = serializers.IntegerField(source='perfume.perfume_id', read_only=True)
-    perfume_name = serializers.CharField(source='perfume.perfume_name', read_only=True)
-    brand_id = serializers.IntegerField(source='perfume.brand.brand_id', read_only=True)
-    brand_name = serializers.CharField(source='perfume.brand.brand_name', read_only=True)
-    concentration = serializers.CharField(source='perfume.concentration', read_only=True)
-    top_notes = serializers.CharField(source='perfume.top_notes', read_only=True)
-    middle_notes = serializers.CharField(source='perfume.middle_notes', read_only=True)
-    base_notes = serializers.CharField(source='perfume.base_notes', read_only=True)
-    longevity_hours = serializers.DecimalField(
-        source='perfume.longevity_hours', max_digits=4, decimal_places=1, read_only=True
-    )
-    sillage = serializers.CharField(source='perfume.sillage', read_only=True)
-    recommended_season = serializers.CharField(source='perfume.recommended_season', read_only=True)
-    target_gender = serializers.CharField(source='perfume.target_gender', read_only=True)
-    description = serializers.CharField(source='perfume.description', read_only=True)
-    image_url = serializers.CharField(source='perfume.image_url', read_only=True)
 
-    class Meta:
-        model = Product
-        fields = [
-            'product_id',
-            'perfume_id',
-            'perfume_name',
-            'brand_id',
-            'brand_name',
-            'concentration',
-            'top_notes',
-            'middle_notes',
-            'base_notes',
-            'longevity_hours',
-            'sillage',
-            'recommended_season',
-            'target_gender',
-            'description',
-            'image_url',
-            'product_type',
-            'volume_ml',
-            'price',
-            'stock_quantity',
-        ]
+class CreateReviewSerializer(serializers.Serializer):
+    """Input for POST /api/reviews/."""
+
+    product_id = serializers.IntegerField()
+    rating = serializers.IntegerField()
+    comment = serializers.CharField(required=False, allow_blank=True, max_length=2000, default='')
+
+    def validate_rating(self, value):
+        if not 1 <= value <= 5:
+            raise serializers.ValidationError("Rating must be between 1 and 5.")
+        return value
+
+    def validate_product_id(self, value):
+        try:
+            product = Product.objects.get(product_id=value)
+        except Product.DoesNotExist:
+            raise serializers.ValidationError("This product does not exist.")
+        self._product = product
+        return value
+
+    def get_product(self):
+        return self._product

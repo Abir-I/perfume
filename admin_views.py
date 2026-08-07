@@ -5,75 +5,109 @@ from django.conf import settings
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework import generics, mixins, status
+from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.authentication import CustomJWTAuthentication
 from accounts.models import Perfume, Product
+
 from .admin_serializers import (
-    AdminSearchResultSerializer,
-    PerfumeAdminSerializer,
+    PerfumeWriteSerializer,
     ProductImageUploadSerializer,
-    ProductVariantAdminSerializer,
+    ProductVariantWriteSerializer,
 )
 from .permissions import IsAdminRole
+from .serializers import ProductSerializer, PerfumeSerializer
 
 
-class AdminAPIViewMixin:
+def _perfume_admin_data(perfume):
     """
-    settings.py sets JWTAuthentication as the project-wide
-    DEFAULT_AUTHENTICATION_CLASSES, but its get_user() resolves the
-    token's user_id against django.contrib.auth's built-in User model
-    (the `auth_user` table) — not accounts.User, which is what the
-    tokens are actually built from in accounts/views.py:LoginView. Any
-    DRF view that touches request.user (which happens automatically)
-    throws a DB error the moment a Bearer token is sent, before
-    permissions are even checked. This is a pre-existing issue on the
-    `Abir` branch, unrelated to catalog.
-
-    We sidestep it here by not authenticating at the DRF layer at all —
-    IsAdminRole already decodes and checks the JWT itself, so we don't
-    need request.user for these endpoints. accounts/ still needs a real
-    fix for this (either set AUTH_USER_MODEL = 'accounts.User', or swap
-    to a custom JWTAuthentication subclass that looks users up in
-    accounts.User).
+    PerfumeSerializer (catalog/serializers.py) doesn't include `sillage`
+    or `description` — they're not needed for browsing, but the admin
+    panel needs to see/edit them. Adding them here rather than editing
+    the shared serializer, so nothing else that uses it is affected.
     """
-    authentication_classes = []
+    data = PerfumeSerializer(perfume).data
+    data['sillage'] = perfume.sillage
+    data['description'] = perfume.description
+    return data
 
 
-class PerfumeAdminCreateView(AdminAPIViewMixin, generics.CreateAPIView):
+class AdminAuthMixin:
+    """Shared auth for every admin endpoint in this file: valid JWT + admin role."""
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminRole]
+
+
+class AdminPerfumeCreateView(AdminAuthMixin, APIView):
     """POST /api/admin/catalog/perfumes/ — add a new perfume."""
-    queryset = Perfume.objects.all()
-    serializer_class = PerfumeAdminSerializer
-    permission_classes = [IsAdminRole]
 
-    def perform_create(self, serializer):
-        serializer.save(created_at=timezone.now())
+    def post(self, request):
+        serializer = PerfumeWriteSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        perfume = Perfume.objects.create(
+            brand=serializer.get_brand(),
+            perfume_name=data['perfume_name'],
+            concentration=data['concentration'],
+            top_notes=data['top_notes'],
+            middle_notes=data['middle_notes'],
+            base_notes=data['base_notes'],
+            longevity_hours=data['longevity_hours'],
+            sillage=data['sillage'],
+            recommended_season=data['recommended_season'],
+            target_gender=data['target_gender'],
+            description=data['description'],
+            created_at=timezone.now(),
+        )
+        return Response(_perfume_admin_data(perfume), status=status.HTTP_201_CREATED)
 
 
-class PerfumeAdminDetailView(AdminAPIViewMixin, mixins.UpdateModelMixin, generics.GenericAPIView):
+class AdminPerfumeDetailView(AdminAuthMixin, APIView):
     """
     PUT    /api/admin/catalog/perfumes/<perfume_id>/  — edit a perfume
     DELETE /api/admin/catalog/perfumes/<perfume_id>/  — deactivate a perfume
 
     Deleting doesn't drop the row — orders, reviews, and decant batches
-    may reference it, and hard-deleting could break that history. Instead
-    we deactivate every product variant under this perfume, which is
-    exactly what the customer-facing browsing endpoint filters on
-    (`is_active=1`), so it disappears from the shop immediately.
+    may reference it. Instead every product variant under this perfume
+    gets deactivated (is_active=0), which is exactly what the customer
+    browsing endpoint filters on, so it disappears from the shop
+    immediately without touching order history.
     """
-    queryset = Perfume.objects.all()
-    serializer_class = PerfumeAdminSerializer
-    permission_classes = [IsAdminRole]
-    lookup_field = 'perfume_id'
-    lookup_url_kwarg = 'perfume_id'
 
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+    def get(self, request, perfume_id):
+        perfume = get_object_or_404(Perfume, perfume_id=perfume_id)
+        return Response(_perfume_admin_data(perfume), status=status.HTTP_200_OK)
 
-    def delete(self, request, *args, **kwargs):
-        perfume = self.get_object()
+    def put(self, request, perfume_id):
+        perfume = get_object_or_404(Perfume, perfume_id=perfume_id)
+        serializer = PerfumeWriteSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        perfume.brand = serializer.get_brand()
+        perfume.perfume_name = data['perfume_name']
+        perfume.concentration = data['concentration']
+        perfume.top_notes = data['top_notes']
+        perfume.middle_notes = data['middle_notes']
+        perfume.base_notes = data['base_notes']
+        perfume.longevity_hours = data['longevity_hours']
+        perfume.sillage = data['sillage']
+        perfume.recommended_season = data['recommended_season']
+        perfume.target_gender = data['target_gender']
+        perfume.description = data['description']
+        perfume.save()
+
+        return Response(_perfume_admin_data(perfume), status=status.HTTP_200_OK)
+
+    def delete(self, request, perfume_id):
+        perfume = get_object_or_404(Perfume, perfume_id=perfume_id)
         deactivated = Product.objects.filter(perfume=perfume).update(is_active=0)
         return Response(
             {
@@ -85,36 +119,52 @@ class PerfumeAdminDetailView(AdminAPIViewMixin, mixins.UpdateModelMixin, generic
         )
 
 
-class ProductVariantCreateView(AdminAPIViewMixin, generics.CreateAPIView):
-    """
-    POST /api/admin/catalog/perfumes/<perfume_id>/variants/
+class AdminVariantCreateView(AdminAuthMixin, APIView):
+    """POST /api/admin/catalog/perfumes/<perfume_id>/variants/ — add a size/price variant."""
 
-    Add a size/price variant (a Product row) under an existing perfume.
-    """
-    serializer_class = ProductVariantAdminSerializer
-    permission_classes = [IsAdminRole]
+    def post(self, request, perfume_id):
+        perfume = get_object_or_404(Perfume, perfume_id=perfume_id)
+        serializer = ProductVariantWriteSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def perform_create(self, serializer):
-        perfume = get_object_or_404(Perfume, perfume_id=self.kwargs['perfume_id'])
-        serializer.save(perfume=perfume, is_active=1, created_at=timezone.now())
+        data = serializer.validated_data
+        product = Product.objects.create(
+            perfume=perfume,
+            product_type=data['product_type'],
+            volume_ml=data['volume_ml'],
+            price=data['price'],
+            stock_quantity=data['stock_quantity'],
+            is_active=1 if data['is_active'] else 0,
+            created_at=timezone.now(),
+        )
+        return Response(ProductSerializer(product).data, status=status.HTTP_201_CREATED)
 
 
-class ProductVariantDetailView(AdminAPIViewMixin, mixins.UpdateModelMixin, generics.GenericAPIView):
+class AdminVariantDetailView(AdminAuthMixin, APIView):
     """
     PUT    /api/admin/catalog/products/<product_id>/  — edit a variant (price/stock/type)
     DELETE /api/admin/catalog/products/<product_id>/  — deactivate a variant
     """
-    queryset = Product.objects.all()
-    serializer_class = ProductVariantAdminSerializer
-    permission_classes = [IsAdminRole]
-    lookup_field = 'product_id'
-    lookup_url_kwarg = 'product_id'
 
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+    def put(self, request, product_id):
+        product = get_object_or_404(Product, product_id=product_id)
+        serializer = ProductVariantWriteSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, *args, **kwargs):
-        product = self.get_object()
+        data = serializer.validated_data
+        product.product_type = data['product_type']
+        product.volume_ml = data['volume_ml']
+        product.price = data['price']
+        product.stock_quantity = data['stock_quantity']
+        product.is_active = 1 if data['is_active'] else 0
+        product.save()
+
+        return Response(ProductSerializer(product).data, status=status.HTTP_200_OK)
+
+    def delete(self, request, product_id):
+        product = get_object_or_404(Product, product_id=product_id)
         product.is_active = 0
         product.save(update_fields=['is_active'])
         return Response(
@@ -123,23 +173,22 @@ class ProductVariantDetailView(AdminAPIViewMixin, mixins.UpdateModelMixin, gener
         )
 
 
-class ProductImageUploadView(AdminAPIViewMixin, APIView):
+class AdminImageUploadView(AdminAuthMixin, APIView):
     """
     POST /api/admin/catalog/perfumes/<perfume_id>/image/
 
     multipart/form-data with a single `image` field (JPG or PNG, <=5MB).
-    Saves the file under static/images/products/, deletes the perfume's
-    previous image if it was one of ours, and stores the new URL on the
-    Perfume row.
+    Saves to static/images/products/, deletes the perfume's previous
+    image if it was one of ours, and stores the new URL on the row.
     """
-    permission_classes = [IsAdminRole]
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, perfume_id):
         perfume = get_object_or_404(Perfume, perfume_id=perfume_id)
 
         serializer = ProductImageUploadSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         image = serializer.validated_data['image']
 
         static_root = settings.STATICFILES_DIRS[0]
@@ -154,7 +203,6 @@ class ProductImageUploadView(AdminAPIViewMixin, APIView):
             for chunk in image.chunks():
                 destination.write(chunk)
 
-      
         old_url = perfume.image_url
         if old_url and old_url.startswith(f"{settings.STATIC_URL}images/products/"):
             old_relative = old_url[len(settings.STATIC_URL):]
@@ -169,26 +217,77 @@ class ProductImageUploadView(AdminAPIViewMixin, APIView):
         return Response({"image_url": new_url}, status=status.HTTP_201_CREATED)
 
 
-class AdminProductSearchView(AdminAPIViewMixin, generics.ListAPIView):
+class AdminInventoryView(AdminAuthMixin, APIView):
+    """
+    GET /api/admin/catalog/inventory/?low_stock_threshold=5
+
+    Lists stock levels for every product and flags anything at or below
+    the threshold (default 5).
+    """
+
+    def get(self, request):
+        try:
+            threshold = int(request.query_params.get('low_stock_threshold', 5))
+        except (TypeError, ValueError):
+            threshold = 5
+
+        products = Product.objects.select_related('perfume', 'perfume__brand').order_by('stock_quantity')
+
+        results = []
+        low_stock_count = 0
+        for p in products:
+            is_low = p.stock_quantity <= threshold
+            if is_low:
+                low_stock_count += 1
+            results.append({
+                "product_id": p.product_id,
+                "perfume_id": p.perfume.perfume_id,
+                "perfume_name": p.perfume.perfume_name,
+                "brand_name": p.perfume.brand.brand_name,
+                "product_type": p.product_type,
+                "volume_ml": p.volume_ml,
+                "stock_quantity": p.stock_quantity,
+                "is_active": bool(p.is_active),
+                "low_stock": is_low,
+            })
+
+        return Response({
+            "count": len(results),
+            "low_stock_threshold": threshold,
+            "low_stock_count": low_stock_count,
+            "results": results,
+        }, status=status.HTTP_200_OK)
+
+
+class AdminSearchView(AdminAuthMixin, APIView):
     """
     GET /api/admin/catalog/search/?q=dior
 
-    Search by perfume name, brand name, or concentration. Returns one
-    row per perfume with brand + total stock across its variants, for
-    the admin dashboard's search bar.
+    Search by perfume name, brand name, or concentration, for the admin
+    dashboard's search bar. Returns total stock per perfume too.
     """
-    serializer_class = AdminSearchResultSerializer
-    permission_classes = [IsAdminRole]
 
-    def get_queryset(self):
-        q = self.request.query_params.get('q', '').strip()
-        queryset = Perfume.objects.select_related('brand').annotate(
+    def get(self, request):
+        q = request.query_params.get('q', '').strip()
+        perfumes = Perfume.objects.select_related('brand').annotate(
             current_stock=Sum('product__stock_quantity')
         )
         if q:
-            queryset = queryset.filter(
+            perfumes = perfumes.filter(
                 Q(perfume_name__icontains=q)
                 | Q(brand__brand_name__icontains=q)
                 | Q(concentration__icontains=q)
             )
-        return queryset.order_by('perfume_name')
+        perfumes = perfumes.order_by('perfume_name')
+
+        results = [
+            {
+                "perfume_id": p.perfume_id,
+                "perfume_name": p.perfume_name,
+                "brand_name": p.brand.brand_name,
+                "concentration": p.concentration,
+                "current_stock": p.current_stock or 0,
+            }
+            for p in perfumes
+        ]
+        return Response({"count": len(results), "results": results}, status=status.HTTP_200_OK)

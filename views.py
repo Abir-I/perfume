@@ -1,87 +1,73 @@
-from rest_framework import generics
-from rest_framework.pagination import LimitOffsetPagination
+from django.db import IntegrityError
+from django.db.models import Avg
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from accounts.models import Brand, Product
-from .serializers import (
-    BrandListSerializer,
-    ProductDetailSerializer,
-    ProductListSerializer,
-)
+from accounts.authentication import CustomJWTAuthentication
+from accounts.models import Review
 
-
-class ProductListPagination(LimitOffsetPagination):
-    default_limit = 20
-    max_limit = 100
+from .serializers import CreateReviewSerializer, ReviewSerializer
 
 
-class BrandListView(generics.ListAPIView):
+class ReviewListCreateView(APIView):
     """
-    GET /api/catalog/brands/
+    GET  /api/reviews/?product_id=X  — list reviews for a product + average rating (public)
+    POST /api/reviews/               — submit a review (logged-in customers only)
 
-    Returns every brand in the store. Used to populate filter
-    dropdowns and nav menus on the frontend.
+    One review per user per product — the `review` table already has a
+    unique(user_id, product_id) constraint, so a second attempt comes
+    back as a clean 409 instead of a raw database error.
     """
-    queryset = Brand.objects.all().order_by('brand_name')
-    serializer_class = BrandListSerializer
+    authentication_classes = [CustomJWTAuthentication]
 
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+        return []
 
-class ProductListView(generics.ListAPIView):
-    """
-    GET /api/catalog/products/
+    def get(self, request):
+        product_id = request.query_params.get('product_id')
+        if not product_id:
+            return Response({"error": "product_id is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    Returns active products, with optional filtering via query params:
-      ?brand_id=<id>             e.g. /api/catalog/products/?brand_id=3
-                                  (?brand=<id> also accepted, kept for
-                                  backward compatibility with Sprint 3)
-      ?size=<volume_ml>          e.g. /api/catalog/products/?size=5
-      ?product_type=<type>       e.g. /api/catalog/products/?product_type=decant
-      ?min_price=<price>         e.g. /api/catalog/products/?min_price=500
-      ?max_price=<price>         e.g. /api/catalog/products/?max_price=1000
-      ?limit=&offset=            pagination, default 20/page, max 100
-
-    Filters can be combined, e.g.:
-      /api/catalog/products/?brand_id=3&product_type=decant&min_price=200&max_price=800
-    """
-    serializer_class = ProductListSerializer
-    pagination_class = ProductListPagination
-
-    def get_queryset(self):
-        queryset = (
-            Product.objects.filter(is_active=1)
-            .select_related('perfume', 'perfume__brand')
+        reviews = (
+            Review.objects.filter(product_id=product_id)
+            .select_related('user')
+            .order_by('-created_at')
         )
+        average = reviews.aggregate(avg=Avg('rating'))['avg']
 
-        brand_id = self.request.query_params.get('brand_id') or self.request.query_params.get('brand')
-        if brand_id:
-            queryset = queryset.filter(perfume__brand_id=brand_id)
+        return Response({
+            "product_id": int(product_id),
+            "count": reviews.count(),
+            "average_rating": round(average, 2) if average is not None else None,
+            "results": ReviewSerializer(reviews, many=True).data,
+        }, status=status.HTTP_200_OK)
 
-        size = self.request.query_params.get('size')
-        if size:
-            queryset = queryset.filter(volume_ml=size)
+    def post(self, request):
+        serializer = CreateReviewSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        product_type = self.request.query_params.get('product_type')
-        if product_type:
-            queryset = queryset.filter(product_type__iexact=product_type)
+        product = serializer.get_product()
+        data = serializer.validated_data
 
-        min_price = self.request.query_params.get('min_price')
-        if min_price:
-            queryset = queryset.filter(price__gte=min_price)
+        try:
+            review = Review.objects.create(
+                user=request.user,
+                product=product,
+                rating=data['rating'],
+                comment=data['comment'],
+                created_at=timezone.now(),
+                is_verified_purchase=0,  # not wired to order history yet — see README
+            )
+        except IntegrityError:
+            return Response(
+                {"error": "You've already reviewed this product."},
+                status=status.HTTP_409_CONFLICT,
+            )
 
-        max_price = self.request.query_params.get('max_price')
-        if max_price:
-            queryset = queryset.filter(price__lte=max_price)
-
-        return queryset.order_by('perfume__perfume_name', 'volume_ml')
-
-
-class ProductDetailView(generics.RetrieveAPIView):
-    """
-    GET /api/catalog/products/<product_id>/
-
-    Returns full detail for a single product: brand, notes, price,
-    and the rest of the perfume info, in one request.
-    """
-    queryset = Product.objects.select_related('perfume', 'perfume__brand').all()
-    serializer_class = ProductDetailSerializer
-    lookup_field = 'product_id'
-    lookup_url_kwarg = 'product_id'
+        return Response(ReviewSerializer(review).data, status=status.HTTP_201_CREATED)

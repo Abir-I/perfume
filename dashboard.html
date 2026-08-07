@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — Admin — The Last Note</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}"/>
+</head>
+<body>
+
+  <div class="admin-shell">
+    {% include 'admin/_sidebar.html' %}
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <h1>Dashboard</h1>
+        <a href="/admin-panel/products/" class="btn btn-brass">+ Add Perfume</a>
+      </div>
+
+      <div class="admin-content">
+        <div class="stat-grid" id="statGrid">
+          <div class="stat-card"><div class="stat-label">Brands</div><div class="stat-value">—</div></div>
+          <div class="stat-card"><div class="stat-label">Perfumes</div><div class="stat-value">—</div></div>
+          <div class="stat-card"><div class="stat-label">Product Variants</div><div class="stat-value">—</div></div>
+          <div class="stat-card alert"><div class="stat-label">Low Stock</div><div class="stat-value">—</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Low Stock Alerts</h2>
+            <a href="/admin-panel/inventory/" class="btn btn-ghost btn-sm">View Full Inventory</a>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <table class="admin-table" id="lowStockTable">
+              <thead>
+                <tr><th>Product</th><th>Brand</th><th>Type</th><th>Stock</th><th>Status</th></tr>
+              </thead>
+              <tbody id="lowStockBody">
+                <tr><td colspan="5" class="empty-state">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h2>Quick Search</h2></div>
+          <div class="panel-body">
+            <div class="search-row">
+              <input type="text" id="quickSearchInput" placeholder="Search perfumes by name, brand, or concentration…"/>
+              <button class="btn btn-brass" id="quickSearchBtn">Search</button>
+            </div>
+            <table class="admin-table" id="quickSearchTable" style="display:none;">
+              <thead><tr><th>Perfume</th><th>Brand</th><th>Concentration</th><th>Total Stock</th></tr></thead>
+              <tbody id="quickSearchBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="adminToast"></div>
+
+  <script src="{% static 'js/admin.js' %}"></script>
+  <script>
+    (async function init() {
+      const session = requireAdminSession();
+      if (!session) return;
+
+      try {
+        const [brands, products, inventory] = await Promise.all([
+          adminApi('/catalog/brands/'),
+          adminApi('/catalog/products/?limit=1'),
+          adminApi('/admin/catalog/inventory/?low_stock_threshold=5'),
+        ]);
+
+        const brandCount = Array.isArray(brands) ? brands.length : (brands.results || brands).length;
+        const productCount = products.count ?? (Array.isArray(products) ? products.length : '—');
+        const perfumeCount = new Set(
+          (inventory.results || []).map(r => r.perfume_id)
+        ).size;
+
+        const cards = document.querySelectorAll('#statGrid .stat-card');
+        cards[0].querySelector('.stat-value').textContent = brandCount;
+        cards[1].querySelector('.stat-value').textContent = perfumeCount || '—';
+        cards[2].querySelector('.stat-value').textContent = productCount;
+        cards[3].querySelector('.stat-value').textContent = inventory.low_stock_count ?? 0;
+        cards[3].querySelector('.stat-value').closest('.stat-card').querySelector('.stat-sub')?.remove();
+        const sub = document.createElement('div');
+        sub.className = 'stat-sub';
+        sub.textContent = `at or below ${inventory.low_stock_threshold} units`;
+        cards[3].appendChild(sub);
+
+        renderLowStock(inventory.results.filter(r => r.low_stock));
+      } catch (err) {
+        showAdminToast(err.message, 'error');
+      }
+    })();
+
+    function renderLowStock(rows) {
+      const body = document.getElementById('lowStockBody');
+      if (!rows.length) {
+        body.innerHTML = '<tr><td colspan="5" class="empty-state">Nothing low on stock right now.</td></tr>';
+        return;
+      }
+      body.innerHTML = rows.slice(0, 8).map(r => `
+        <tr>
+          <td>${escapeHtml(r.perfume_name)}</td>
+          <td>${escapeHtml(r.brand_name)}</td>
+          <td>${escapeHtml(r.product_type)} · ${r.volume_ml}ml</td>
+          <td>${r.stock_quantity}</td>
+          <td><span class="badge badge-low">Low Stock</span></td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('quickSearchBtn').addEventListener('click', runQuickSearch);
+    document.getElementById('quickSearchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') runQuickSearch();
+    });
+
+    async function runQuickSearch() {
+      const q = document.getElementById('quickSearchInput').value.trim();
+      const table = document.getElementById('quickSearchTable');
+      const body = document.getElementById('quickSearchBody');
+      try {
+        const data = await adminApi(`/admin/catalog/search/?q=${encodeURIComponent(q)}`);
+        table.style.display = 'table';
+        if (!data.results.length) {
+          body.innerHTML = '<tr><td colspan="4" class="empty-state">No matches.</td></tr>';
+          return;
+        }
+        body.innerHTML = data.results.map(p => `
+          <tr>
+            <td>${escapeHtml(p.perfume_name)}</td>
+            <td>${escapeHtml(p.brand_name)}</td>
+            <td>${escapeHtml(p.concentration)}</td>
+            <td>${p.current_stock}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        showAdminToast(err.message, 'error');
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+  </script>
+</body>
+</html>
