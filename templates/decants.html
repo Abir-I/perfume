@@ -1,0 +1,628 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Fragrance Decants — The Last Note</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        /* ═══════════════════════════════════════════════════════════════
+           PREMIUM DECANTS PAGE
+           ═══════════════════════════════════════════════════════════════ */
+
+        .decants-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        .decants-hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .decants-hero .subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .decants-intro {
+            margin: 60px auto;
+            text-align: center;
+            max-width: 800px;
+        }
+
+        .intro-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+        }
+
+        .intro-text {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* SIZES SHOWCASE */
+        .sizes-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            margin: 80px 0;
+        }
+
+        .size-feature {
+            text-align: center;
+        }
+
+        .size-bottle {
+            width: 120px;
+            height: 240px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            box-shadow: 0 12px 32px rgba(212, 175, 55, 0.2);
+        }
+
+        .size-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+
+        .size-volume {
+            font-size: 18px;
+            color: #d4af37;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .size-wears {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .size-price {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+        }
+
+        .size-features-list {
+            text-align: left;
+            background: #f9f7f4;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .size-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .size-feature-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .size-feature-item::before {
+            content: '✓';
+            color: #d4af37;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .size-cta {
+            display: flex;
+            gap: 8px;
+        }
+
+        .size-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #d4af37;
+            background: white;
+            color: #d4af37;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+
+        .size-btn:hover {
+            background: #d4af37;
+            color: white;
+        }
+
+        .size-btn.primary {
+            background: #d4af37;
+            color: white;
+        }
+
+        .size-btn.primary:hover {
+            background: #c39c2a;
+            border-color: #c39c2a;
+        }
+
+        /* WHY DECANTS */
+        .why-section {
+            background: linear-gradient(135deg, #f9f7f4 0%, #fafaf8 100%);
+            padding: 80px 20px;
+            margin: 80px 0;
+            border-radius: 12px;
+        }
+
+        .why-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 32px;
+        }
+
+        .why-card {
+            text-align: center;
+        }
+
+        .why-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .why-card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+
+        .why-card-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* PROCESS SECTION */
+        .process-section {
+            margin: 80px 0;
+            padding: 60px;
+            background: white;
+            border: 2px solid #f0f0ee;
+            border-radius: 12px;
+        }
+
+        .process-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .process-step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 auto 16px;
+        }
+
+        .step-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+
+        .step-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* FAQ */
+        .faq-section {
+            margin: 80px 0;
+        }
+
+        .faq-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .faq-item {
+            background: white;
+            border: 1px solid #f0f0ee;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+            border-color: #d4af37;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.1);
+        }
+
+        .faq-question {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #1a1a2e;
+            cursor: pointer;
+        }
+
+        .faq-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #d4af37;
+            color: white;
+            border-radius: 50%;
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 200px;
+        }
+
+        .faq-answer-text {
+            padding: 0 20px 20px 20px;
+            color: #666;
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .decants-hero h1 {
+                font-size: 32px;
+            }
+
+            .intro-title {
+                font-size: 26px;
+            }
+
+            .why-section,
+            .process-section {
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+{% include 'partials/_navbar.html' %}
+
+<!-- ░░ HERO ░░ -->
+<div class="decants-hero">
+    <div class="container">
+        <h1>Premium Fragrance Decants</h1>
+        <p class="subtitle">Try any luxury fragrance without the commitment. Every decant is batch-traced, authenticity guaranteed, and delivered in premium packaging.</p>
+    </div>
+</div>
+
+<!-- ░░ INTRO ░░ -->
+<div class="container">
+    <div class="decants-intro">
+        <h2 class="intro-title">What is a Decant?</h2>
+        <p class="intro-text">
+            A decant is a portion of an authentic, sealed fragrance bottle divided into smaller samples. 
+            We source every drop from verified retailers, pour in medical-grade atomizers, and trace each decant back to its original bottle. 
+            This means you get the exact fragrance at a fraction of the cost with complete provenance documentation.
+        </p>
+    </div>
+
+    <!-- ░░ SIZES ░░ -->
+    <div class="sizes-showcase">
+        <!-- 5ml -->
+        <div class="size-feature">
+            <div class="size-bottle">🧴</div>
+            <h3 class="size-name">The Sampler</h3>
+            <p class="size-volume">5ml</p>
+            <p class="size-wears">30–50 wears</p>
+            <p class="size-price">From ৳250</p>
+            <div class="size-features-list">
+                <div class="size-feature-item">Perfect for trying</div>
+                <div class="size-feature-item">Travel-friendly</div>
+                <div class="size-feature-item">Lowest risk</div>
+            </div>
+            <div class="size-cta">
+                <button class="size-btn" onclick="shopSize('5ml')">Explore</button>
+                <button class="size-btn primary" onclick="shopSize('5ml')">Shop</button>
+            </div>
+        </div>
+
+        <!-- 10ml -->
+        <div class="size-feature">
+            <div class="size-bottle">🧪</div>
+            <h3 class="size-name">The Tester</h3>
+            <p class="size-volume">10ml</p>
+            <p class="size-wears">60–100 wears</p>
+            <p class="size-price">From ৳480</p>
+            <div class="size-features-list">
+                <div class="size-feature-item">Full season trial</div>
+                <div class="size-feature-item">Best value</div>
+                <div class="size-feature-item">Most popular</div>
+            </div>
+            <div class="size-cta">
+                <button class="size-btn" onclick="shopSize('10ml')">Explore</button>
+                <button class="size-btn primary" onclick="shopSize('10ml')">Shop</button>
+            </div>
+        </div>
+
+        <!-- 20ml -->
+        <div class="size-feature">
+            <div class="size-bottle">🏺</div>
+            <h3 class="size-name">The Reserve</h3>
+            <p class="size-volume">20ml</p>
+            <p class="size-wears">150–250 wears</p>
+            <p class="size-price">From ৳1,200</p>
+            <div class="size-features-list">
+                <div class="size-feature-item">Extended testing</div>
+                <div class="size-feature-item">Before buying</div>
+                <div class="size-feature-item">Confident choice</div>
+            </div>
+            <div class="size-cta">
+                <button class="size-btn" onclick="shopSize('20ml')">Explore</button>
+                <button class="size-btn primary" onclick="shopSize('20ml')">Shop</button>
+            </div>
+        </div>
+
+        <!-- Full Bottle -->
+        <div class="size-feature">
+            <div class="size-bottle">🍾</div>
+            <h3 class="size-name">The Commitment</h3>
+            <p class="size-volume">Full Bottle</p>
+            <p class="size-wears">Unlimited</p>
+            <p class="size-price">From ৳5,000</p>
+            <div class="size-features-list">
+                <div class="size-feature-item">Original sealed</div>
+                <div class="size-feature-item">Full authenticity</div>
+                <div class="size-feature-item">Forever fragrance</div>
+            </div>
+            <div class="size-cta">
+                <button class="size-btn" onclick="shopSize('full')">Explore</button>
+                <button class="size-btn primary" onclick="shopSize('full')">Shop</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ░░ WHY DECANTS ░░ -->
+<div class="why-section">
+    <div class="container">
+        <h2 class="why-title">Why Choose Decants?</h2>
+        <div class="why-grid">
+            <div class="why-card">
+                <div class="why-icon">💰</div>
+                <h3 class="why-card-title">Save Money</h3>
+                <p class="why-card-text">Try luxury fragrances at 1/4 to 1/10 the cost of a full bottle.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">🔍</div>
+                <h3 class="why-card-title">No Risk</h3>
+                <p class="why-card-text">Test before buying. Know exactly what a fragrance is like on your skin across seasons.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">✅</div>
+                <h3 class="why-card-title">100% Authentic</h3>
+                <p class="why-card-text">Every decant traced back to a sealed, verified source bottle. Full provenance documentation.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">🌍</div>
+                <h3 class="why-card-title">Explore More</h3>
+                <p class="why-card-text">Build your fragrance wardrobe without the financial commitment of multiple bottles.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">📦</div>
+                <h3 class="why-card-title">Premium Packaging</h3>
+                <p class="why-card-text">Delivered in medical-grade atomizers with luxury packaging and authenticity cards.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">⚡</div>
+                <h3 class="why-card-title">Fast Delivery</h3>
+                <p class="why-card-text">Orders processed within 24 hours. Nationwide delivery in 2-3 business days.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ░░ HOW IT WORKS ░░ -->
+<div class="container">
+    <div class="process-section">
+        <h2 class="process-title">Our Decanting Process</h2>
+        <div class="process-steps">
+            <div class="process-step">
+                <div class="step-number">①</div>
+                <h3 class="step-title">Authentic Sourcing</h3>
+                <p class="step-description">We purchase sealed bottles exclusively from authorized retailers. Each bottle is verified, photographed, and batch-coded.</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">②</div>
+                <h3 class="step-title">Precision Decanting</h3>
+                <p class="step-description">Trained specialists fill medical-grade glass atomizers to exact weight in a clean-room environment.</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">③</div>
+                <h3 class="step-title">Quality Check</h3>
+                <p class="step-description">Every decant is inspected for consistency, weight, and appearance before packaging.</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">④</div>
+                <h3 class="step-title">Sealed & Traced</h3>
+                <p class="step-description">Your order arrives with a traceability card showing the original bottle and sequence number.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ░░ FAQ ░░ -->
+    <div class="faq-section">
+        <h2 class="faq-title">Frequently Asked Questions</h2>
+        <div class="faq-list">
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>Are your decants authentic?</span>
+                    <div class="faq-icon">+</div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-text">
+                        100% yes. Every decant is sourced from sealed bottles purchased from authorized retailers. Each decant is traced back to the original bottle with a traceability number, batch code, and pour date. We guarantee authenticity or your money back.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>How long do decants last?</span>
+                    <div class="faq-icon">+</div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-text">
+                        Decants last as long as full bottles — 3 to 5 years or more if stored properly (cool, dark place). Since they're in sealed atomizers, they maintain fragrance integrity until the spray valve is broken.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>Can I return or exchange a decant?</span>
+                    <div class="faq-icon">+</div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-text">
+                        Yes! If a decant arrives damaged or if the fragrance doesn't match the description, we offer a full refund or exchange within 30 days of purchase. For opened decants, we accept returns based on our return policy.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>How do you source fragrances?</span>
+                    <div class="faq-icon">+</div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-text">
+                        We partner directly with authorized distributors and retailers of major brands. Every bottle is purchased new, sealed, and verified before any portion is decanted. We never purchase from grey markets or counterfeit sources.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>What if I want a fragrance you don't have?</span>
+                    <div class="faq-icon">+</div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-text">
+                        We're constantly adding new fragrances based on customer demand. You can request a specific fragrance, and we'll do our best to source it. Submit requests through our brand request form.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/_footer.html' %}
+
+<script>
+function shopSize(size) {
+    window.location.href = `/shop/?size=${size}`;
+}
+
+function toggleFaq(element) {
+    element.classList.toggle('active');
+}
+</script>
+
+<script src="{% static 'js/product-links.js' %}"></script>
+</body>
+</html>
