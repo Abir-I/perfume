@@ -1,19 +1,6 @@
 'use strict';
-
-/* ══════════════════════════════════════════════════════════════
-   THE LAST NOTE · admin.js
-   Shared across every /admin-panel/ page: auth guard, API calls,
-   toast notifications. Reuses the same 'access_token' localStorage
-   key the storefront's login modal already writes to
-   (templates/partials/_auth_modals.html), so logging in as an
-   admin from the normal site login also gets you into the panel.
-   ══════════════════════════════════════════════════════════════ */
-
 const ADMIN_API_BASE = 'http://127.0.0.1:8000/api';
 
-/* ── JWT decoding (client-side only, for UI — the server always
-   re-checks the real role on every admin request; this just decides
-   whether to show the panel or bounce to login) ── */
 function decodeJwt(token) {
   try {
     const payload = token.split('.')[1];
@@ -34,11 +21,10 @@ function getAdminSession() {
   if (!token) return null;
   const payload = decodeJwt(token);
   if (!payload) return null;
-  if (payload.exp && Date.now() >= payload.exp * 1000) return null; // expired
+  if (payload.exp && Date.now() >= payload.exp * 1000) return null; 
   return { token, payload };
 }
 
-/* Every admin page except login.html calls this immediately. */
 function requireAdminSession() {
   const session = getAdminSession();
   if (!session) {
@@ -66,10 +52,6 @@ function adminLogout() {
   window.location.href = '/admin-panel/login/';
 }
 
-/* ── API helper: attaches the JWT, handles JSON, surfaces DRF-style
-   errors (field: [messages]) as a single readable string, and bounces
-   to login on 401/403 so an expired/non-admin session doesn't just
-   sit there silently failing every request. ── */
 async function adminApi(path, { method = 'GET', body = null, isForm = false } = {}) {
   const session = getAdminSession();
   const headers = {};
@@ -87,7 +69,7 @@ async function adminApi(path, { method = 'GET', body = null, isForm = false } = 
     try {
       const data = await res.json();
       detail = data.detail || data.message || detail;
-    } catch { /* ignore */ }
+    } catch {   }
     showAdminToast(detail, 'error');
     setTimeout(() => { window.location.href = '/admin-panel/login/'; }, 1100);
     throw new Error(detail);
@@ -107,7 +89,7 @@ function formatApiError(data) {
   if (typeof data === 'string') return data;
   if (data.error) return data.error;
   if (data.detail) return data.detail;
-  // DRF validation errors: { field: ["message", ...], ... }
+
   const parts = [];
   for (const [field, messages] of Object.entries(data)) {
     const msg = Array.isArray(messages) ? messages.join(' ') : String(messages);
@@ -116,7 +98,6 @@ function formatApiError(data) {
   return parts.length ? parts.join(' | ') : 'Something went wrong.';
 }
 
-/* ── Toast ── */
 let adminToastTimer = null;
 function showAdminToast(message, type = 'default') {
   const el = document.getElementById('adminToast');
@@ -127,7 +108,6 @@ function showAdminToast(message, type = 'default') {
   adminToastTimer = setTimeout(() => { el.className = ''; }, 3200);
 }
 
-/* ── Sidebar active-link highlight ── */
 document.addEventListener('DOMContentLoaded', () => {
   const path = window.location.pathname.replace(/\/$/, '');
   document.querySelectorAll('.admin-nav a').forEach(a => {
