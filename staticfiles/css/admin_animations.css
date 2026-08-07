@@ -1,0 +1,563 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   THE LAST NOTE - ADMIN ANIMATIONS V4.0
+   Fixed Animation Timing - Smooth & Premium
+   ═════════════════════════════════════════════════════════════════════════════*/
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* FADE IN ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.fade-in {
+    animation: fadeIn 400ms ease-out forwards;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* FADE IN UP ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.fade-in-up[style*="--delay"] {
+    opacity: 0;
+    animation: fadeInUp 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: var(--delay);
+}
+
+/* Delay utilities */
+.delay-1 { --delay: 100ms; }
+.delay-2 { --delay: 200ms; }
+.delay-3 { --delay: 300ms; }
+.delay-4 { --delay: 400ms; }
+.delay-5 { --delay: 500ms; }
+.delay-6 { --delay: 600ms; }
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* SLIDE ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in-left {
+    animation: slideInLeft 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-in-right {
+    animation: slideInRight 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* SCALE ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes popIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.scale-in {
+    animation: scaleIn 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pop-in {
+    animation: popIn 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* BOUNCE ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.7) translateY(20px);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1) translateY(0);
+    }
+}
+
+.bounce {
+    animation: bounce 600ms ease-in-out;
+}
+
+.bounce-in {
+    animation: bounceIn 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* PULSE & SHIMMER */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.shimmer {
+    background: linear-gradient(
+        90deg,
+        #f0f0f0 0%,
+        #e0e0e0 50%,
+        #f0f0f0 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* SPIN & ROTATE */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spinReverse {
+    from {
+        transform: rotate(360deg);
+    }
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+.spin-reverse {
+    animation: spinReverse 1s linear infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* FLIP ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes flipInX {
+    from {
+        opacity: 0;
+        transform: perspective(400px) rotateX(90deg);
+    }
+    to {
+        opacity: 1;
+        transform: perspective(400px) rotateX(0deg);
+    }
+}
+
+@keyframes flipInY {
+    from {
+        opacity: 0;
+        transform: perspective(400px) rotateY(90deg);
+    }
+    to {
+        opacity: 1;
+        transform: perspective(400px) rotateY(0deg);
+    }
+}
+
+.flip-in-x {
+    animation: flipInX 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.flip-in-y {
+    animation: flipInY 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* GLOW ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+    }
+}
+
+.glow {
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* WAVE ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes wave {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.wave {
+    animation: wave 1s ease-in-out infinite;
+}
+
+.wave:nth-child(1) { animation-delay: 0s; }
+.wave:nth-child(2) { animation-delay: 0.1s; }
+.wave:nth-child(3) { animation-delay: 0.2s; }
+.wave:nth-child(4) { animation-delay: 0.3s; }
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* GRADIENT ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.gradient-shift {
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* HOVER ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+.hover-lift {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hover-glow {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-glow:hover {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+}
+
+.hover-scale {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}
+
+.hover-rotate {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-rotate:hover {
+    transform: rotate(5deg);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* TRANSITION UTILITIES */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+.transition-fast {
+    transition: all 150ms ease-in-out;
+}
+
+.transition-base {
+    transition: all 300ms ease-in-out;
+}
+
+.transition-slow {
+    transition: all 500ms ease-in-out;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* TABLE ROW ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes tableRowIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.admin-table tbody tr {
+    animation: tableRowIn 400ms ease-out;
+}
+
+.admin-table tbody tr:nth-child(1) { animation-delay: 0ms; }
+.admin-table tbody tr:nth-child(2) { animation-delay: 50ms; }
+.admin-table tbody tr:nth-child(3) { animation-delay: 100ms; }
+.admin-table tbody tr:nth-child(4) { animation-delay: 150ms; }
+.admin-table tbody tr:nth-child(5) { animation-delay: 200ms; }
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* BUTTON ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes buttonPress {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.admin-btn {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-btn:active {
+    animation: buttonPress 150ms ease-out;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* MODAL ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes modalIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes modalContentIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.admin-modal.active {
+    animation: modalIn 300ms ease-out;
+}
+
+.admin-modal.active .admin-modal-content {
+    animation: modalContentIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* LOADING STATE ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes skeletonLoading {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        #f0f0f0 0%,
+        #e0e0e0 50%,
+        #f0f0f0 100%
+    );
+    background-size: 1000px 100%;
+    animation: skeletonLoading 2s infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* TOAST ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOutDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}
+
+.admin-toast {
+    animation: slideInUp 300ms ease-out;
+}
+
+.admin-toast.hide {
+    animation: slideOutDown 300ms ease-out;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* FORM ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+.form-group {
+    animation: fadeInUp 400ms ease-out;
+}
+
+.form-group:nth-child(1) { animation-delay: 0ms; }
+.form-group:nth-child(2) { animation-delay: 50ms; }
+.form-group:nth-child(3) { animation-delay: 100ms; }
+.form-group:nth-child(4) { animation-delay: 150ms; }
+.form-group:nth-child(5) { animation-delay: 200ms; }
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* STAT CARD ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+.stat-card {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* DISABLE ANIMATIONS FOR REDUCED MOTION */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* PRINT MEDIA - DISABLE ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@media print {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
