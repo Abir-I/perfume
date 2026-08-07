@@ -13,14 +13,7 @@ from .serializers import CreateReviewSerializer, ReviewSerializer
 
 
 class ReviewListCreateView(APIView):
-    """
-    GET  /api/reviews/?product_id=X  — list reviews for a product + average rating (public)
-    POST /api/reviews/               — submit a review (logged-in customers only)
-
-    One review per user per product — the `review` table already has a
-    unique(user_id, product_id) constraint, so a second attempt comes
-    back as a clean 409 instead of a raw database error.
-    """
+   
     authentication_classes = [CustomJWTAuthentication]
 
     def get_permissions(self):
@@ -62,7 +55,7 @@ class ReviewListCreateView(APIView):
                 rating=data['rating'],
                 comment=data['comment'],
                 created_at=timezone.now(),
-                is_verified_purchase=0,  # not wired to order history yet — see README
+                is_verified_purchase=0,  
             )
         except IntegrityError:
             return Response(
