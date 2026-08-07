@@ -1,254 +1,217 @@
-"""
-Cart Views
-API endpoints for cart management
-"""
+"""Cart API - uses the project's real accounts.User + cart/cart_item tables."""
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.db.models import Sum
-from .models import Cart, CartItem, Coupon
-from catalog.models import Product
+from django.db import transaction
 from django.utils import timezone
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from accounts.authentication import CustomJWTAuthentication
+from accounts.models import Cart, CartItem
+from catalog.models import Product
 
 
-class CartListView(APIView):
-    """Get cart items"""
-    
+class BaseCartView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_user(self, request):
+        user = getattr(request, 'user', None)
+        if not user or not getattr(user, 'is_authenticated', False) or not hasattr(user, 'user_id'):
+            return None
+        return user
+
+    def get_cart(self, user):
+        cart, _ = Cart.objects.get_or_create(
+            user_id=user.user_id,
+            defaults={
+                'created_at': timezone.now(),
+                'updated_at': timezone.now(),
+            },
+        )
+        return cart
+
+    def item_payload(self, item):
+        product = item.product
+        perfume = product.perfume
+        brand = perfume.brand
+        final_price = getattr(perfume, 'final_price', None) or product.price
+        image = getattr(perfume, 'image_url', None) or getattr(perfume, 'image', None)
+        image = str(image) if image else None
+        if image and not image.startswith(('http://', 'https://', '/')):
+            image = '/media/' + image
+
+        return {
+            'id': item.cart_item_id,
+            'cart_item_id': item.cart_item_id,
+            'product_id': product.product_id,
+            'product_name': perfume.perfume_name,
+            'perfume_name': perfume.perfume_name,
+            'brand': brand.brand_name,
+            'brand_name': brand.brand_name,
+            'price': float(product.price),
+            'final_price': float(final_price),
+            'quantity': item.quantity,
+            'stock_quantity': int(product.stock_quantity or 0),
+            'image': image,
+            'image_url': image,
+            'subtotal': round(float(final_price) * item.quantity, 2),
+        }
+
+    def cart_payload(self, cart, message='Cart loaded'):
+        items = list(
+            CartItem.objects.select_related(
+                'product', 'product__perfume', 'product__perfume__brand'
+            ).filter(cart=cart).order_by('added_at')
+        )
+        payload_items = [self.item_payload(item) for item in items]
+        subtotal = round(sum(item['subtotal'] for item in payload_items), 2)
+        shipping = 0
+        tax = 0
+        total = round(subtotal + shipping + tax, 2)
+        total_items = sum(item['quantity'] for item in payload_items)
+
+        return {
+            'message': message,
+            'storage': 'database',
+            'cart_id': cart.cart_id,
+            'items': payload_items,
+            'subtotal': subtotal,
+            'shipping': shipping,
+            'tax': tax,
+            'total_price': total,
+            'total': total,
+            'total_items': total_items,
+        }
+
+
+class CartListView(BaseCartView):
+    """GET /api/cart/"""
+
     def get(self, request):
-        """Get current user's cart"""
-        try:
-            if request.user.is_authenticated:
-                cart, created = Cart.objects.get_or_create(user=request.user)
-            else:
-                session_key = request.session.session_key
-                if not session_key:
-                    request.session.create()
-                    session_key = request.session.session_key
-                cart, created = Cart.objects.get_or_create(session_key=session_key)
-            
-            items = cart.items.all()
-            
-            # Calculate totals
-            subtotal = cart.get_total_price()
-            shipping = 0  # Free shipping
-            tax = 0  # Calculate if needed
-            total = subtotal + shipping + tax
-            
-            return Response({
-                'cart_id': cart.id,
-                'items': [
-                    {
-                        'id': item.id,
-                        'product_id': item.product.product_id,
-                        'product_name': item.product.perfume.perfume_name,
-                        'brand': item.product.perfume.brand.brand_name,
-                        'price': float(item.product.price),
-                        'final_price': float(getattr(item.product.perfume, 'final_price', item.product.price)),
-                        'quantity': item.quantity,
-                        'image': str(item.product.perfume.image) if item.product.perfume.image else None,
-                        'subtotal': float(item.get_subtotal()),
-                    }
-                    for item in items
-                ],
-                'subtotal': float(subtotal),
-                'shipping': shipping,
-                'tax': tax,
-                'total_price': float(total),
-                'total_items': cart.get_total_items(),
-            })
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        user = self.get_user(request)
+        if not user:
+            return Response({'error': 'Please log in to view your cart.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(self.cart_payload(self.get_cart(user)))
 
 
-class AddToCartView(APIView):
-    """Add item to cart"""
-    
+class AddToCartView(BaseCartView):
+    """POST /api/cart/add/ {product_id, quantity}"""
+
     def post(self, request):
-        """Add product to cart"""
+        user = self.get_user(request)
+        if not user:
+            return Response({'error': 'Please log in to add items to your cart.'}, status=status.HTTP_401_UNAUTHORIZED)
+
         try:
-            product_id = request.data.get('product_id')
+            product_id = int(request.data.get('product_id'))
             quantity = int(request.data.get('quantity', 1))
-            
-            if not product_id:
-                return Response({'error': 'Product ID required'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            if quantity <= 0:
-                return Response({'error': 'Quantity must be positive'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            product = Product.objects.get(product_id=product_id)
-            
-            # Stock validation
-            if product.quantity < quantity:
-                return Response({
-                    'error': f'Insufficient stock. Available: {product.quantity}',
-                    'available_quantity': product.quantity
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            if request.user.is_authenticated:
-                cart, created = Cart.objects.get_or_create(user=request.user)
-            else:
-                session_key = request.session.session_key
-                if not session_key:
-                    request.session.create()
-                    session_key = request.session.session_key
-                cart, created = Cart.objects.get_or_create(session_key=session_key)
-            
-            cart_item, item_created = CartItem.objects.get_or_create(
-                cart=cart,
-                product=product,
-                defaults={'quantity': quantity}
-            )
-            
-            if not item_created:
-                # Check if adding more would exceed stock
-                total_quantity = cart_item.quantity + quantity
-                if product.quantity < total_quantity:
-                    return Response({
-                        'error': f'Cannot add {quantity} more. Total would be {total_quantity}, but only {product.quantity} available',
-                        'available_quantity': product.quantity
-                    }, status=status.HTTP_400_BAD_REQUEST)
-                
-                cart_item.quantity += quantity
-                cart_item.save()
-            
-            cart.updated_at = timezone.now()
-            cart.save()
-            
-            return Response({
-                'message': 'Item added to cart',
-                'cart_id': cart.id,
-                'total_items': cart.get_total_items(),
-                'total_price': cart.get_total_price(),
-            }, status=status.HTTP_201_CREATED)
-        
+        except (TypeError, ValueError):
+            return Response({'error': 'Invalid product or quantity.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if quantity <= 0:
+            return Response({'error': 'Quantity must be greater than zero.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            product = Product.objects.select_related('perfume', 'perfume__brand').get(product_id=product_id)
         except Product.DoesNotExist:
-            return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Product not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not product.is_active:
+            return Response({'error': 'This product is not currently available.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        stock = int(product.stock_quantity or 0)
+        if stock <= 0:
+            return Response({'error': 'This item is out of stock.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        cart = self.get_cart(user)
+        with transaction.atomic():
+            item = CartItem.objects.filter(cart=cart, product=product).first()
+            new_quantity = min((item.quantity if item else 0) + quantity, stock)
+            if item:
+                item.quantity = new_quantity
+                item.save(update_fields=['quantity'])
+            else:
+                CartItem.objects.create(
+                    cart=cart,
+                    product=product,
+                    quantity=min(quantity, stock),
+                    added_at=timezone.now(),
+                )
+            Cart.objects.filter(pk=cart.cart_id).update(updated_at=timezone.now())
+
+        return Response(
+            self.cart_payload(cart, 'Added to cart'),
+            status=status.HTTP_201_CREATED,
+        )
 
 
-class UpdateCartItemView(APIView):
-    """Update cart item quantity"""
-    
+class UpdateCartItemView(BaseCartView):
+    """PATCH /api/cart/items/<cart_item_id>/update/"""
+
     def patch(self, request, item_id):
-        """Update quantity"""
+        user = self.get_user(request)
+        if not user:
+            return Response({'error': 'Please log in.'}, status=status.HTTP_401_UNAUTHORIZED)
+
         try:
-            quantity = int(request.data.get('quantity', 1))
-            
-            if quantity < 0:
-                return Response({'error': 'Quantity must be positive'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            cart_item = CartItem.objects.get(id=item_id)
-            cart = cart_item.cart
-            
-            if quantity == 0:
-                cart_item.delete()
-                message = 'Item removed from cart'
-            else:
-                cart_item.quantity = quantity
-                cart_item.save()
-                message = 'Quantity updated'
-            
-            # Get updated cart data
-            items = cart.items.all()
-            subtotal = cart.get_total_price()
-            shipping = 0  # Free shipping
-            tax = 0
-            total = subtotal + shipping + tax
-            
-            return Response({
-                'message': message,
-                'items': [
-                    {
-                        'id': item.id,
-                        'product_id': item.product.product_id,
-                        'product_name': item.product.perfume.perfume_name,
-                        'brand': item.product.perfume.brand.brand_name,
-                        'price': float(item.product.price),
-                        'final_price': float(getattr(item.product.perfume, 'final_price', item.product.price)),
-                        'quantity': item.quantity,
-                        'image': str(item.product.perfume.image) if item.product.perfume.image else None,
-                        'subtotal': float(item.get_subtotal()),
-                    }
-                    for item in items
-                ],
-                'subtotal': float(subtotal),
-                'shipping': shipping,
-                'tax': tax,
-                'total_price': float(total),
-                'total_items': cart.get_total_items(),
-            })
-        
+            quantity = int(request.data.get('quantity'))
+        except (TypeError, ValueError):
+            return Response({'error': 'Invalid quantity.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            item = CartItem.objects.select_related('product').get(
+                cart__user_id=user.user_id,
+                cart_item_id=item_id,
+            )
         except CartItem.DoesNotExist:
-            return Response({'error': 'Cart item not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Cart item not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if quantity <= 0:
+            item.delete()
+        else:
+            stock = int(item.product.stock_quantity or 0)
+            if stock <= 0:
+                return Response({'error': 'This item is out of stock.'}, status=status.HTTP_400_BAD_REQUEST)
+            item.quantity = min(quantity, stock)
+            item.save(update_fields=['quantity'])
+
+        cart = self.get_cart(user)
+        Cart.objects.filter(pk=cart.cart_id).update(updated_at=timezone.now())
+        return Response(self.cart_payload(cart, 'Cart updated'))
 
 
-class RemoveFromCartView(APIView):
-    """Remove item from cart"""
-    
+class RemoveFromCartView(BaseCartView):
+    """DELETE /api/cart/items/<cart_item_id>/remove/"""
+
     def delete(self, request, item_id):
-        """Remove item"""
+        user = self.get_user(request)
+        if not user:
+            return Response({'error': 'Please log in.'}, status=status.HTTP_401_UNAUTHORIZED)
+
         try:
-            cart_item = CartItem.objects.get(id=item_id)
-            cart = cart_item.cart
-            cart_item.delete()
-            
-            # Get updated cart data
-            items = cart.items.all()
-            subtotal = cart.get_total_price()
-            shipping = 0  # Free shipping
-            tax = 0
-            total = subtotal + shipping + tax
-            
-            return Response({
-                'message': 'Item removed from cart',
-                'items': [
-                    {
-                        'id': item.id,
-                        'product_id': item.product.product_id,
-                        'product_name': item.product.perfume.perfume_name,
-                        'brand': item.product.perfume.brand.brand_name,
-                        'price': float(item.product.price),
-                        'final_price': float(getattr(item.product.perfume, 'final_price', item.product.price)),
-                        'quantity': item.quantity,
-                        'image': str(item.product.perfume.image) if item.product.perfume.image else None,
-                        'subtotal': float(item.get_subtotal()),
-                    }
-                    for item in items
-                ],
-                'subtotal': float(subtotal),
-                'shipping': shipping,
-                'tax': tax,
-                'total_price': float(total),
-                'total_items': cart.get_total_items(),
-            })
-        
+            item = CartItem.objects.get(
+                cart__user_id=user.user_id,
+                cart_item_id=item_id,
+            )
         except CartItem.DoesNotExist:
-            return Response({'error': 'Cart item not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Cart item not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        cart = item.cart
+        item.delete()
+        Cart.objects.filter(pk=cart.cart_id).update(updated_at=timezone.now())
+        return Response(self.cart_payload(cart, 'Item removed from cart'))
 
 
-class ClearCartView(APIView):
-    """Clear entire cart"""
-    
+class ClearCartView(BaseCartView):
+    """DELETE /api/cart/clear/"""
+
     def delete(self, request):
-        """Clear cart"""
-        try:
-            if request.user.is_authenticated:
-                cart = Cart.objects.get(user=request.user)
-            else:
-                session_key = request.session.session_key
-                cart = Cart.objects.get(session_key=session_key)
-            
-            CartItem.objects.filter(cart=cart).delete()
-            
-            return Response({'message': 'Cart cleared'})
-        except Cart.DoesNotExist:
-            return Response({'error': 'Cart not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+        user = self.get_user(request)
+        if not user:
+            return Response({'error': 'Please log in.'}, status=status.HTTP_401_UNAUTHORIZED)
+        cart = self.get_cart(user)
+        CartItem.objects.filter(cart=cart).delete()
+        Cart.objects.filter(pk=cart.cart_id).update(updated_at=timezone.now())
+        return Response(self.cart_payload(cart, 'Cart cleared'))
