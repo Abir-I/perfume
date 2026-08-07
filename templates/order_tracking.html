@@ -1,0 +1,493 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Tracking - The Last Note</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/shop.css' %}">
+    <style>
+        .tracking-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .tracking-header {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            color: #1a1a2e;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .order-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #d4af37;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .order-header h2 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+
+        .order-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            color: #d4af37;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .tracking-timeline {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .timeline-item:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 60px;
+            width: 2px;
+            height: 30px;
+            background: #d4af37;
+        }
+
+        .timeline-marker {
+            width: 40px;
+            height: 40px;
+            background: #d4af37;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a1a2e;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .timeline-item.completed .timeline-marker {
+            background: #27ae60;
+        }
+
+        .timeline-item.active .timeline-marker {
+            background: #d4af37;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-date {
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .timeline-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            color: #1a1a2e;
+            margin: 5px 0;
+        }
+
+        .timeline-message {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .timeline-location {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .order-items {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .order-items h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+        }
+
+        .item-row {
+            display: grid;
+            grid-template-columns: 60px 1fr 80px 80px;
+            gap: 15px;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .item-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .item-details h4 {
+            margin: 0;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+
+        .item-details p {
+            margin: 3px 0 0 0;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .item-qty,
+        .item-price {
+            text-align: right;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+
+        .order-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #d4af37;
+            margin-bottom: 30px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-row.total {
+            border-bottom: none;
+            border-top: 2px solid #d4af37;
+            padding-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+
+        .summary-row.total .value {
+            color: #d4af37;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #d4af37;
+            border: 2px solid #d4af37;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+            border: 2px solid #c0392b;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-shipped {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-delivered {
+            background: #c3e6cb;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .order-info {
+                grid-template-columns: 1fr;
+            }
+
+            .item-row {
+                grid-template-columns: 50px 1fr;
+            }
+
+            .item-qty,
+            .item-price {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-logo">
+                <span class="logo-icon">🎀</span>
+                <span class="logo-text">The Last Note</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/shop/">Shop</a></li>
+                <li><a href="/cart/">Cart</a></li>
+                <li><a href="/customer/">My Orders</a></li>
+                <li id="authLink"></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="tracking-container">
+        <h1 class="tracking-header">📦 Order Tracking</h1>
+
+        <div id="orderContent" class="loading">
+            Loading order details...
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 The Last Note. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const getAuthToken = () => localStorage.getItem('authToken');
+        const orderId = new URLSearchParams(window.location.search).get('id');
+
+        if (!orderId) {
+            document.getElementById('orderContent').innerHTML = '<p>Order ID not found</p>';
+        }
+
+        const loadOrder = async () => {
+            try {
+                const response = await fetch(`/api/orders/${orderId}/`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load order');
+                const data = await response.json();
+                renderOrder(data.order);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('orderContent').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        };
+
+        const renderOrder = (order) => {
+            const statusClass = `status-${order.order_status}`;
+
+            const trackingHTML = order.tracking_history.map((track, index) => `
+                <div class="timeline-item ${index === 0 ? 'active' : 'completed'}">
+                    <div class="timeline-marker">${index + 1}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">${new Date(track.timestamp).toLocaleDateString()} ${new Date(track.timestamp).toLocaleTimeString()}</div>
+                        <div class="timeline-title">${track.status_message}</div>
+                        ${track.location ? `<div class="timeline-location">📍 ${track.location}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            const itemsHTML = order.items.map(item => `
+                <div class="item-row">
+                    <img src="${item.product_image}" alt="${item.product_name}" class="item-image">
+                    <div class="item-details">
+                        <h4>${item.product_name}</h4>
+                        <p>${item.product_brand}</p>
+                    </div>
+                    <div class="item-qty">x${item.quantity}</div>
+                    <div class="item-price">$${parseFloat(item.total_price).toFixed(2)}</div>
+                </div>
+            `).join('');
+
+            const html = `
+                <div class="order-header">
+                    <h2>Order #${order.order_number}</h2>
+                    <div class="order-info">
+                        <div class="info-item">
+                            <div class="info-label">Order Date</div>
+                            <div class="info-value">${new Date(order.order_date).toLocaleDateString()}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Status</div>
+                            <div class="info-value"><span class="status-badge ${statusClass}">${order.status_display}</span></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Total Amount</div>
+                            <div class="info-value">$${parseFloat(order.total_amount).toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tracking-timeline">
+                    <h3 style="margin-top: 0; margin-bottom: 20px; color: #1a1a2e;">📍 Tracking Timeline</h3>
+                    <div class="timeline">
+                        ${trackingHTML}
+                    </div>
+                </div>
+
+                <div class="order-items">
+                    <h3>Items Ordered</h3>
+                    ${itemsHTML}
+                </div>
+
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>$${parseFloat(order.subtotal).toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>$${parseFloat(order.shipping_cost).toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax</span>
+                        <span>$${parseFloat(order.tax).toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span class="value">$${parseFloat(order.total_amount).toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0; color: #1a1a2e;">Delivery Address</h3>
+                    <p style="margin: 0; color: #666;">
+                        ${order.customer_name}<br>
+                        ${order.shipping_address}<br>
+                        ${order.shipping_city}, ${order.shipping_state} ${order.shipping_postal_code}<br>
+                        ${order.shipping_country}<br>
+                        <strong>Phone:</strong> ${order.customer_phone}
+                    </p>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="/customer/" class="btn btn-primary">Back to Orders</a>
+                    ${order.can_cancel ? `<button class="btn btn-danger" onclick="cancelOrder()">Cancel Order</button>` : ''}
+                </div>
+            `;
+
+            document.getElementById('orderContent').innerHTML = html;
+        };
+
+        const cancelOrder = async () => {
+            if (!confirm('Are you sure you want to cancel this order?')) return;
+
+            try {
+                const reason = prompt('Please enter cancellation reason (optional):');
+                const response = await fetch(`/api/orders/${orderId}/cancel/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: JSON.stringify({ reason: reason || 'Customer requested' })
+                });
+
+                if (!response.ok) throw new Error('Failed to cancel order');
+
+                alert('Order cancelled successfully!');
+                location.reload();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', loadOrder);
+    </script>
+</body>
+</html>
