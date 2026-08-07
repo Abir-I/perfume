@@ -39,7 +39,6 @@
   <script>
     const LOGIN_API_BASE = 'http://127.0.0.1:8000/api';
 
-    // Already have a valid session? Skip straight to the dashboard.
     (function redirectIfLoggedIn() {
       const token = localStorage.getItem('access_token');
       if (!token) return;
@@ -80,18 +79,14 @@
           return;
         }
 
-        // Same keys the storefront's login modal uses, so a session
-        // started here also works on the main site and vice versa.
+        
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('token', data.access);
         localStorage.setItem('user', JSON.stringify({
           id: data.user_id, name: data.full_name, email: data.email,
         }));
 
-        // The server is the real authority on admin access — this
-        // request just doubles as an immediate, friendly check so a
-        // non-admin gets a clear message here instead of bouncing
-        // around the dashboard first.
+      
         const check = await fetch(`${LOGIN_API_BASE}/admin/catalog/inventory/?low_stock_threshold=999999`, {
           headers: { 'Authorization': `Bearer ${data.access}` },
         });
