@@ -1,0 +1,180 @@
+  <!-- ===== LOGIN MODAL ===== -->
+  <div id="loginModal" class="auth-modal">
+    <div class="auth-modal-content">
+      <h2>Login</h2>
+      <div class="auth-form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="Enter your email">
+      </div>
+      <div class="auth-form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter your password">
+      </div>
+      <div id="loginError" class="auth-error"></div>
+      <div class="auth-modal-buttons">
+        <button class="auth-btn-submit" onclick="handleLogin()">Login</button>
+        <button class="auth-btn-close" onclick="closeLoginModal()">Close</button>
+      </div>
+      <div class="auth-modal-footer">
+        Don't have an account? <a onclick="switchToRegister()">Register here</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REGISTER MODAL ===== -->
+  <div id="registerModal" class="auth-modal">
+    <div class="auth-modal-content">
+      <h2>Register</h2>
+      <div class="auth-form-group">
+        <label>Email</label>
+        <input type="email" id="registerEmail" placeholder="Enter your email">
+      </div>
+      <div class="auth-form-group">
+        <label>Username</label>
+        <input type="text" id="registerUsername" placeholder="Choose a username">
+      </div>
+      <div class="auth-form-group">
+        <label>First Name</label>
+        <input type="text" id="registerFirstName" placeholder="Enter your first name">
+      </div>
+      <div class="auth-form-group">
+        <label>Last Name</label>
+        <input type="text" id="registerLastName" placeholder="Enter your last name">
+      </div>
+      <div class="auth-form-group">
+        <label>Password</label>
+        <input type="password" id="registerPassword" placeholder="Password (minimum 8 characters)">
+      </div>
+      <div id="registerError" class="auth-error"></div>
+      <div id="registerSuccess" class="auth-success"></div>
+      <div class="auth-modal-buttons">
+        <button class="auth-btn-submit" onclick="handleRegister()">Register</button>
+        <button class="auth-btn-close" onclick="closeRegisterModal()">Close</button>
+      </div>
+      <div class="auth-modal-footer">
+        Already have an account? <a onclick="switchToLogin()">Login here</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const AUTH_API_BASE = '/api';
+
+    // Show/Hide modals
+    function showLoginModal() {
+      document.getElementById('loginModal').classList.add('show');
+      document.getElementById('registerModal').classList.remove('show');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('show');
+      document.getElementById('loginError').textContent = '';
+    }
+
+    function showRegisterModal() {
+      document.getElementById('registerModal').classList.add('show');
+      document.getElementById('loginModal').classList.remove('show');
+    }
+
+    function closeRegisterModal() {
+      document.getElementById('registerModal').classList.remove('show');
+      document.getElementById('registerError').textContent = '';
+      document.getElementById('registerSuccess').textContent = '';
+    }
+
+    function switchToLogin() {
+      closeRegisterModal();
+      showLoginModal();
+    }
+
+    function switchToRegister() {
+      closeLoginModal();
+      showRegisterModal();
+    }
+
+    // Handle Login
+    async function handleLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const errorDiv = document.getElementById('loginError');
+
+      if (!email || !password) {
+        errorDiv.textContent = 'Please fill in all fields';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${AUTH_API_BASE}/accounts/login/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, password})
+        });
+
+        const data = await response.json();
+
+        if (data.access) {
+          localStorage.setItem('token', data.access);
+          localStorage.setItem('access_token', data.access);
+          localStorage.setItem('user', JSON.stringify({
+            id: data.user_id,
+            name: data.full_name,
+            email: data.email
+          }));
+          alert('✅ Login successful! Welcome ' + data.full_name);
+          closeLoginModal();
+          location.reload();
+        } else {
+          errorDiv.textContent = data.error || 'Login failed. Please check your credentials.';
+        }
+      } catch (error) {
+        errorDiv.textContent = 'Error: ' + error.message;
+      }
+    }
+
+    // Handle Register
+    async function handleRegister() {
+      const email = document.getElementById('registerEmail').value;
+      const username = document.getElementById('registerUsername').value;
+      const first_name = document.getElementById('registerFirstName').value;
+      const last_name = document.getElementById('registerLastName').value;
+      const password = document.getElementById('registerPassword').value;
+      const errorDiv = document.getElementById('registerError');
+      const successDiv = document.getElementById('registerSuccess');
+
+      errorDiv.textContent = '';
+      successDiv.textContent = '';
+
+      if (!email || !username || !first_name || !last_name || !password) {
+        errorDiv.textContent = 'Please fill in all fields';
+        return;
+      }
+
+      if (password.length < 8) {
+        errorDiv.textContent = 'Password must be at least 8 characters';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${AUTH_API_BASE}/accounts/register/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, username, first_name, last_name, password})
+        });
+
+        const data = await response.json();
+
+        if (data.message) {
+          successDiv.textContent = '✅ Registration successful! Now login with your credentials.';
+          setTimeout(() => {
+            closeRegisterModal();
+            showLoginModal();
+            document.getElementById('loginEmail').value = email;
+          }, 2000);
+        } else {
+          errorDiv.textContent = JSON.stringify(data) || 'Registration failed';
+        }
+      } catch (error) {
+        errorDiv.textContent = 'Error: ' + error.message;
+      }
+    }
+  </script>

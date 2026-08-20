@@ -1,0 +1,320 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Last Note — Authentic Perfume Decants</title>
+  <meta name="description" content="Premium authentic perfumes in 5ml, 10ml, 20ml decants and full bottles. Every decant batch-traced from sealed source bottle."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+</head>
+<body>
+
+  <!-- ░░ PAGE LOADER ░░ -->
+  <div id="loader" aria-hidden="true">
+    <div class="loader-mark">
+      <span class="loader-text">THE LAST NOTE</span>
+      <div class="loader-line"><div class="loader-progress"></div></div>
+    </div>
+  </div>
+
+  <!-- ░░ TOAST ░░ -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <div class="product-modal" id="productModal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="pm-panel">
+      <button class="pm-close" aria-label="Close" data-modal-close>&times;</button>
+      <div class="pm-body" id="productModalBody"></div>
+    </div>
+  </div>
+
+  {% include 'partials/_navbar.html' %}
+  
+  <!-- CART SIDEBAR -->
+  {% include 'cart_sidebar_include.html' %}
+
+  <!-- ░░ HERO ░░ -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <div class="hero-left">
+        <p class="hero-eyebrow reveal-up">Authentic · Batch-Traced · Every Size</p>
+        <h1 class="hero-headline reveal-up delay-1">
+          Try Before<br/><em>You Commit.</em>
+        </h1>
+        <p class="hero-sub reveal-up delay-2">
+          Premium fragrances poured from sealed, authenticated bottles.
+          Every decant linked to its source — so you know exactly what you're wearing.
+        </p>
+        <div class="hero-actions reveal-up delay-3">
+          <a href="#decants" class="btn-primary">Shop Decants</a>
+          <a href="#how" class="btn-ghost">How It Works</a>
+        </div>
+        <div class="hero-stats reveal-up delay-4">
+          <div class="stat">
+            <span class="stat-n" id="stat-frag">1,200+</span>
+            <span class="stat-l">Fragrances</span>
+          </div>
+          <div class="stat-sep" aria-hidden="true"></div>
+          <div class="stat">
+            <span class="stat-n">48k+</span>
+            <span class="stat-l">Customers</span>
+          </div>
+          <div class="stat-sep" aria-hidden="true"></div>
+          <div class="stat">
+            <span class="stat-n" id="stat-rat">4.9</span>
+            <span class="stat-l">Avg Rating</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-img-frame">
+          <img
+            src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=900&q=85&auto=format"
+            alt="Luxury glass perfume bottle"
+            class="hero-img"
+            id="heroImg"
+            loading="eager"
+          />
+          <!-- Floating arrival card -->
+          <div class="arrival-card reveal-up delay-5">
+            <span class="arrival-label">New Arrival</span>
+            <p class="arrival-brand">Dior</p>
+            <p class="arrival-name">Sauvage EDP</p>
+            <a href="#" class="arrival-link">From ৳350 · 5ml <span>→</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Decorative hairline -->
+    <div class="hero-rule" aria-hidden="true"></div>
+  </section>
+
+  <!-- ░░ BRAND TICKER ░░ -->
+  <div class="ticker-wrap" id="brands" aria-label="Brands we carry">
+    <div class="ticker-track" id="tickerTrack">
+      <span>Dior</span><span class="sep" aria-hidden="true">·</span>
+      <span>Tom Ford</span><span class="sep" aria-hidden="true">·</span>
+      <span>Creed</span><span class="sep" aria-hidden="true">·</span>
+      <span>Versace</span><span class="sep" aria-hidden="true">·</span>
+      <span>Armani</span><span class="sep" aria-hidden="true">·</span>
+      <span>Le Labo</span><span class="sep" aria-hidden="true">·</span>
+      <span>Diptyque</span><span class="sep" aria-hidden="true">·</span>
+      <span>Byredo</span><span class="sep" aria-hidden="true">·</span>
+      <span>Maison Margiela</span><span class="sep" aria-hidden="true">·</span>
+      <span>Xerjoff</span><span class="sep" aria-hidden="true">·</span>
+      <span>Parfums de Marly</span><span class="sep" aria-hidden="true">·</span>
+      <span>Amouage</span><span class="sep" aria-hidden="true">·</span>
+      <!-- duplicate for seamless loop -->
+      <span>Dior</span><span class="sep" aria-hidden="true">·</span>
+      <span>Tom Ford</span><span class="sep" aria-hidden="true">·</span>
+      <span>Creed</span><span class="sep" aria-hidden="true">·</span>
+      <span>Versace</span><span class="sep" aria-hidden="true">·</span>
+      <span>Armani</span><span class="sep" aria-hidden="true">·</span>
+      <span>Le Labo</span><span class="sep" aria-hidden="true">·</span>
+      <span>Diptyque</span><span class="sep" aria-hidden="true">·</span>
+      <span>Byredo</span><span class="sep" aria-hidden="true">·</span>
+      <span>Maison Margiela</span><span class="sep" aria-hidden="true">·</span>
+      <span>Xerjoff</span><span class="sep" aria-hidden="true">·</span>
+      <span>Parfums de Marly</span><span class="sep" aria-hidden="true">·</span>
+      <span>Amouage</span><span class="sep" aria-hidden="true">·</span>
+    </div>
+  </div>
+
+  <!-- ░░ SHOP BY SIZE ░░ -->
+  <section class="sizes-section" id="decants">
+    <div class="section-header reveal-up">
+      <div>
+        <p class="eyebrow">Explore by Volume</p>
+        <h2 class="section-title">Shop by Size</h2>
+      </div>
+      <p class="section-note">Every size decanted to the same uncompromising standard.</p>
+    </div>
+    <div class="sizes-grid">
+      <article class="size-card reveal-up delay-1">
+        <div class="size-card-img">
+          <img src="{% static "images/size-cards/sampler.svg" %}" alt="5ml sample decant" loading="lazy"/>
+          <span class="size-pill">5ml</span>
+        </div>
+        <div class="size-card-body">
+          <h3 class="size-name">The Sampler</h3>
+          <p class="size-desc">30–50 wears. The lowest-risk way to live with a fragrance before deciding.</p>
+          <div class="size-cta">
+            <span class="size-price">From ৳250</span>
+            <a href="/shop/?product_type=decant&volume=5" class="size-link" aria-label="Shop 5ml decants">Explore <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </article>
+      <article class="size-card reveal-up delay-2">
+        <div class="size-card-img">
+          <img src="{% static "images/size-cards/tester.svg" %}" alt="10ml tester decant" loading="lazy"/>
+          <span class="size-pill">10ml</span>
+        </div>
+        <div class="size-card-body">
+          <h3 class="size-name">The Tester</h3>
+          <p class="size-desc">60–100 wears across every season. Know it's yours before you commit to a bottle.</p>
+          <div class="size-cta">
+            <span class="size-price">From ৳480</span>
+            <a href="/shop/?product_type=decant&volume=10" class="size-link" aria-label="Shop 10ml decants">Explore <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </article>
+      <article class="size-card reveal-up delay-3">
+        <div class="size-card-img">
+          <img src="{% static "images/size-cards/full-bottle.svg" %}" alt="Full bottle" loading="lazy"/>
+          <span class="size-pill">Full Bottle</span>
+        </div>
+        <div class="size-card-body">
+          <h3 class="size-name">The Commitment</h3>
+          <p class="size-desc">The original sealed bottle, sourced from authorized retailers with full provenance documentation.</p>
+          <div class="size-cta">
+            <span class="size-price">From ৳5,000</span>
+            <a href="/shop/?product_type=full_size" class="size-link" aria-label="Shop full bottles">Explore <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ░░ FEATURED PRODUCTS ░░ -->
+  <section class="products-section" id="shop">
+    <div class="section-header reveal-up">
+      <div>
+        <p class="eyebrow">Hand-Selected</p>
+        <h2 class="section-title">Featured This Week</h2>
+      </div>
+      <a href="{% url 'shop' %}" class="view-all-link" aria-label="View all products">View all <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="products-grid" id="productGrid">
+      <!-- Skeleton loaders shown until JS populates -->
+      <div class="product-skeleton"><div class="sk-img"></div><div class="sk-line w60"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+      <div class="product-skeleton"><div class="sk-img"></div><div class="sk-line w60"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+      <div class="product-skeleton"><div class="sk-img"></div><div class="sk-line w60"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+      <div class="product-skeleton"><div class="sk-img"></div><div class="sk-line w60"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+    </div>
+  </section>
+
+  <!-- ░░ HOW IT WORKS ░░ -->
+  <section class="how-section" id="how">
+    <div class="how-inner">
+      <div class="how-left reveal-up">
+        <p class="eyebrow">Transparency First</p>
+        <h2 class="section-title">How Decanting<br/>Works</h2>
+        <div class="how-rule" aria-hidden="true"></div>
+        <p class="how-body">
+          Every decant carries a complete chain of custody from the retailer's sealed box to your hands.
+          No middlemen, no mystery — just verifiable provenance at every step.
+        </p>
+      </div>
+      <div class="how-steps">
+        <div class="how-step reveal-up delay-1">
+          <div class="step-marker" aria-hidden="true">01</div>
+          <div class="step-content">
+            <h3 class="step-title">Authentic Sourcing</h3>
+            <p class="step-body">We purchase sealed bottles exclusively from authorized brand retailers. Each is photographed, batch-coded, and entered into our traceability system before any seal is broken.</p>
+          </div>
+        </div>
+        <div class="how-step reveal-up delay-2">
+          <div class="step-marker" aria-hidden="true">02</div>
+          <div class="step-content">
+            <h3 class="step-title">Precision Decanting</h3>
+            <p class="step-body">Trained specialists fill medical-grade glass atomizers to exact weight in a clean-room environment. Each decant is labeled with its source bottle's batch number immediately after filling.</p>
+          </div>
+        </div>
+        <div class="how-step reveal-up delay-3">
+          <div class="step-marker" aria-hidden="true">03</div>
+          <div class="step-content">
+            <h3 class="step-title">Sealed & Traced</h3>
+            <p class="step-body">Your order arrives with a traceability card showing the original bottle, pour date, and your decant's sequence number — scan it any time to verify what you received.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ REVIEWS CAROUSEL ░░ -->
+  <section class="reviews-section" id="reviews">
+    <div class="section-header reveal-up">
+      <div>
+        <p class="eyebrow">Verified Customers</p>
+        <h2 class="section-title">What People Say</h2>
+      </div>
+      <div class="reviews-nav" aria-label="Review carousel controls">
+        <button class="rev-btn" id="revPrev" aria-label="Previous review">←</button>
+        <button class="rev-btn" id="revNext" aria-label="Next review">→</button>
+      </div>
+    </div>
+    <div class="reviews-track-wrap">
+      <div class="reviews-track" id="reviewsTrack">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+    <div class="reviews-dots" id="reviewsDots" role="tablist" aria-label="Review pagination"></div>
+  </section>
+
+  <!-- ░░ NEWSLETTER ░░ -->
+  <div class="newsletter-section reveal-up">
+    <div class="newsletter-inner">
+      <div class="newsletter-left">
+        <p class="eyebrow eyebrow-light">Stay in the Loop</p>
+        <h2 class="newsletter-title">New arrivals.<br/>Rare finds. First.</h2>
+      </div>
+      <div class="newsletter-right">
+        <form class="newsletter-form" id="newsletterForm" novalidate>
+          <input type="email" id="newsletterEmail" class="newsletter-input" placeholder="Your email address" aria-label="Email for newsletter" required/>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+        <p class="newsletter-note">No spam. Just drops and exclusives — unsubscribe any time.</p>
+      </div>
+    </div>
+  </div>
+
+  {% include 'partials/_footer.html' %}
+
+  <!-- ░░ CHATBOT ░░ -->
+  <button class="chat-fab" id="chatFab" aria-label="Open AI fragrance assistant">
+    <div class="fab-ring" aria-hidden="true"></div>
+    <svg id="fabChatIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <svg id="fabCloseIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+
+  <div class="chat-panel" id="chatPanel" aria-hidden="true">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar">🌸</div>
+        <div>
+          <p class="chat-name">Nota — AI Assistant</p>
+          <p class="chat-status"><span class="online-dot" aria-hidden="true"></span>Online · Powered by AI</p>
+        </div>
+      </div>
+      <button class="chat-close-btn" onclick="closeChat()" aria-label="Close chat">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg bot">
+        Hi! I'm <strong>Nota</strong>, your AI fragrance guide at The Last Note. 🌸<br/><br/>
+        I can recommend perfumes by season, occasion, or budget, explain our decanting process, answer questions about shipping and authenticity, or help you track an order.
+        <br/><br/>What can I help you with?
+      </div>
+      <div class="chat-suggestions" id="chatSuggestions">
+        <button class="sug-btn" onclick="sendSuggestion(this, 'Recommend a summer fragrance')">🌞 Summer scents</button>
+        <button class="sug-btn" onclick="sendSuggestion(this, 'What is a decant?')">❓ What's a decant?</button>
+        <button class="sug-btn" onclick="sendSuggestion(this, 'Show me your best sellers')">⭐ Best sellers</button>
+        <button class="sug-btn" onclick="sendSuggestion(this, 'How do you verify authenticity?')">✅ Authenticity</button>
+      </div>
+    </div>
+    <form class="chat-input-row" id="chatForm" novalidate>
+      <input type="text" class="chat-input" id="chatInput" placeholder="Ask about fragrances, decants…" autocomplete="off" aria-label="Chat message"/>
+      <button type="submit" class="chat-send" aria-label="Send">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </form>
+  </div>
+
+  {% include 'partials/_auth_modals.html' %}
+
+  <script src="{% static 'js/script.js' %}"></script>
+  <script src="{% static 'js/product-links.js' %}"></script>
+</body>
+</html>

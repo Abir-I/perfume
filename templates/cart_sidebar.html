@@ -1,0 +1,412 @@
+<!-- Cart Sidebar - Working Implementation -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+        <h2>Your Cart</h2>
+        <button class="cart-close" id="cartClose">&times;</button>
+    </div>
+    
+    <div class="cart-items" id="cartItems">
+        <!-- Items loaded here -->
+        <div class="cart-empty">
+            <p>Your cart is empty</p>
+            <a href="/shop/" class="btn-continue">Continue Shopping</a>
+        </div>
+    </div>
+    
+    <div class="cart-summary" id="cartSummary" style="display:none;">
+        <div class="summary-item">
+            <span>Subtotal:</span>
+            <span id="cartSubtotal">৳0</span>
+        </div>
+        <div class="summary-item">
+            <span>Shipping:</span>
+            <span>Free</span>
+        </div>
+        <div class="summary-total">
+            <span>Total:</span>
+            <span id="cartTotal">৳0</span>
+        </div>
+    </div>
+    
+    <div class="cart-actions" id="cartActions" style="display:none;">
+        <button class="btn-checkout" onclick="window.location.href='/checkout/'">Proceed to Checkout</button>
+        <button class="btn-continue" onclick="cartSidebar.close()">Continue Shopping</button>
+    </div>
+</div>
+
+<style>
+.cart-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    z-index: 998;
+}
+
+.cart-overlay.active {
+    display: block;
+}
+
+.cart-sidebar {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 400px;
+    height: 100vh;
+    background: white;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-sidebar.active {
+    transform: translateX(0);
+}
+
+.cart-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cart-header h2 {
+    margin: 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    color: #333;
+}
+
+.cart-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.cart-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.cart-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.cart-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+    align-items: flex-start;
+}
+
+.cart-item-image {
+    width: 80px;
+    height: 80px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.cart-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cart-item-info {
+    flex: 1;
+}
+
+.cart-item-name {
+    font-weight: 600;
+    margin: 0 0 5px 0;
+    color: #333;
+    font-size: 14px;
+}
+
+.cart-item-variant {
+    font-size: 12px;
+    color: #999;
+    margin: 0 0 8px 0;
+}
+
+.cart-item-price {
+    font-weight: 600;
+    color: #d4af37;
+    margin-bottom: 8px;
+}
+
+.cart-item-qty {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qty-btn {
+    background: #f5f5f5;
+    border: none;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    border-radius: 2px;
+    font-size: 14px;
+}
+
+.qty-btn:hover {
+    background: #ddd;
+}
+
+.cart-item-remove {
+    color: #e74c3c;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+    margin-top: 8px;
+}
+
+.cart-summary {
+    padding: 20px;
+    border-top: 1px solid #eee;
+    background: #f9f9f9;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.summary-total span:last-child {
+    color: #d4af37;
+}
+
+.cart-actions {
+    padding: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-checkout {
+    background: #1a1a2e;
+    color: #d4af37;
+    border: none;
+    padding: 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.btn-checkout:hover {
+    background: #2d2d4a;
+}
+
+.btn-continue {
+    background: white;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-continue:hover {
+    border-color: #d4af37;
+    color: #d4af37;
+}
+
+@media (max-width: 600px) {
+    .cart-sidebar {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+const cartSidebar = {
+    open() {
+        const sidebar = document.getElementById('cartSidebar');
+        const overlay = document.getElementById('cartOverlay');
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        this.loadCart();
+    },
+    
+    close() {
+        const sidebar = document.getElementById('cartSidebar');
+        const overlay = document.getElementById('cartOverlay');
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    },
+    
+    async loadCart() {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                this.renderEmpty();
+                return;
+            }
+            
+            const response = await fetch('/api/cart/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                this.renderEmpty();
+                return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.items && data.items.length > 0) {
+                this.renderItems(data.items);
+                this.renderSummary(data.total_price);
+            } else {
+                this.renderEmpty();
+            }
+        } catch (error) {
+            console.error('Error loading cart:', error);
+            this.renderEmpty();
+        }
+    },
+    
+    renderEmpty() {
+        const container = document.getElementById('cartItems');
+        document.getElementById('cartSummary').style.display = 'none';
+        document.getElementById('cartActions').style.display = 'none';
+        container.innerHTML = `
+            <div class="cart-empty">
+                <p>Your cart is empty</p>
+                <a href="/shop/" class="btn-continue">Continue Shopping</a>
+            </div>
+        `;
+    },
+    
+    renderItems(items) {
+        const container = document.getElementById('cartItems');
+        const itemsHtml = items.map(item => `
+            <div class="cart-item">
+                <div class="cart-item-image">
+                    <img src="${item.product_image || '/static/images/placeholder.jpg'}" alt="${item.product_name}">
+                </div>
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.product_name}</div>
+                    <div class="cart-item-variant">${item.variant_name || 'Standard'}</div>
+                    <div class="cart-item-price">৳${item.price}</div>
+                    <div class="cart-item-qty">
+                        <button class="qty-btn" onclick="cartSidebar.updateQty(${item.id}, ${item.quantity - 1})">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="qty-btn" onclick="cartSidebar.updateQty(${item.id}, ${item.quantity + 1})">+</button>
+                    </div>
+                    <button class="cart-item-remove" onclick="cartSidebar.removeItem(${item.id})">Remove</button>
+                </div>
+            </div>
+        `).join('');
+        
+        container.innerHTML = itemsHtml;
+    },
+    
+    renderSummary(total) {
+        document.getElementById('cartSubtotal').textContent = `৳${total}`;
+        document.getElementById('cartTotal').textContent = `৳${total}`;
+        document.getElementById('cartSummary').style.display = 'block';
+        document.getElementById('cartActions').style.display = 'flex';
+    },
+    
+    async updateQty(itemId, quantity) {
+        if (quantity < 1) {
+            this.removeItem(itemId);
+            return;
+        }
+        
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(`/api/cart/items/${itemId}/update/`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ quantity })
+            });
+            
+            if (response.ok) {
+                this.loadCart();
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+        }
+    },
+    
+    async removeItem(itemId) {
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(`/api/cart/items/${itemId}/remove/`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                this.loadCart();
+            }
+        } catch (error) {
+            console.error('Error removing item:', error);
+        }
+    }
+};
+
+// Setup event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const cartBtn = document.getElementById('cartBtn');
+    const cartClose = document.getElementById('cartClose');
+    const cartOverlay = document.getElementById('cartOverlay');
+    
+    if (cartBtn) cartBtn.addEventListener('click', () => cartSidebar.open());
+    if (cartClose) cartClose.addEventListener('click', () => cartSidebar.close());
+    if (cartOverlay) cartOverlay.addEventListener('click', () => cartSidebar.close());
+});
+</script>

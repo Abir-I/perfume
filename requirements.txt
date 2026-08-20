@@ -1,0 +1,29 @@
+# The Last Note - Django Requirements
+# Python 3.12.x
+
+# Django Core
+Django==5.0.14
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.3.1
+
+# Database
+PyMySQL==1.2.0
+
+# Image Processing
+Pillow==11.1.0
+
+# Security & Authentication
+bcrypt==4.1.2
+cryptography==42.0.2
+
+# Utilities
+python-decouple==3.8
+python-dotenv==1.0.0
+django-environ==0.10.0
+requests==2.31.0
+
+# Admin UI compatibility layer (kept compatible with Django 5.0.x)
+django-unfold==0.90.0
+django-crispy-forms==2.3
+crispy-bootstrap5==2024.2

@@ -1,0 +1,55 @@
+<!-- CART SIDEBAR POPUP - Add this at the end of _navbar.html -->
+
+<div class="cart-sidebar-overlay" id="cartOverlay"></div>
+<aside class="cart-sidebar" id="cartSidebar">
+    <!-- Sidebar Header -->
+    <div class="cart-sidebar-header">
+        <h2 class="cart-sidebar-title">Your Cart</h2>
+        <button class="cart-sidebar-close" id="cartSidebarClose" aria-label="Close cart">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Cart Items -->
+    <div class="cart-sidebar-items" id="cartSidebarItems">
+        <div class="cart-sidebar-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            <p>Your cart is empty</p>
+            <a href="/shop/" class="cart-sidebar-continue">Continue Shopping</a>
+        </div>
+    </div>
+
+    <!-- Cart Summary -->
+    <div class="cart-sidebar-summary" id="cartSidebarSummary" style="display: none;">
+        <div class="cart-summary-item">
+            <span>Subtotal:</span>
+            <span id="cartSidebarSubtotal">৳0.00</span>
+        </div>
+        <div class="cart-summary-item">
+            <span>Shipping:</span>
+            <span id="cartSidebarShipping">Free</span>
+        </div>
+        <div class="cart-summary-divider"></div>
+        <div class="cart-summary-total">
+            <span>Total:</span>
+            <span id="cartSidebarTotal">৳0.00</span>
+        </div>
+    </div>
+
+    <!-- Checkout & Continue Buttons -->
+    <div class="cart-sidebar-actions" id="cartSidebarActions" style="display: none;">
+        <button class="cart-sidebar-checkout-btn" id="cartSidebarCheckout">
+            Proceed to Checkout
+        </button>
+        <button class="cart-sidebar-continue-btn" id="cartSidebarContinue">
+            Continue Shopping
+        </button>
+    </div>
+</aside>

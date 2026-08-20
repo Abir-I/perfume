@@ -1,0 +1,379 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Admin Dashboard - The Last Note</title>
+    <link rel="stylesheet" href="{% static 'css/admin_premium.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin_animations.css' %}">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- ========== NAVBAR ========== -->
+        <nav class="admin-navbar">
+            <div class="admin-navbar-left">
+                <div class="admin-logo-wrapper">
+                    <span class="admin-logo-icon">🎀</span>
+                    <h1 class="admin-logo">The Last Note Admin</h1>
+                </div>
+            </div>
+            <div class="admin-navbar-right">
+                <div class="admin-stats-pill">
+                    <span class="stat-item">
+                        <span class="stat-label">Products:</span>
+                        <span class="stat-value" id="navStatsProducts">0</span>
+                    </span>
+                    <span class="stat-item">
+                        <span class="stat-label">Discounts:</span>
+                        <span class="stat-value" id="navStatsDiscounts">0</span>
+                    </span>
+                </div>
+                <div class="admin-user-section">
+                    <span class="admin-user-info" id="adminUserName">Admin</span>
+                    <a class="admin-btn admin-btn-outline" href="/admin-orders/" style="text-decoration:none;margin-right:8px">📦 Orders</a><button class="admin-btn admin-btn-outline" id="logoutBtn">↪ Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- ========== DASHBOARD STATS ========== -->
+        <div class="admin-stats-grid">
+            <div class="stat-card stat-card-primary fade-in-up" style="--delay: 0.1s">
+                <div class="stat-icon">📦</div>
+                <div class="stat-content">
+                    <h3>Total Products</h3>
+                    <p class="stat-number" id="statTotalProducts">0</p>
+                </div>
+            </div>
+            <div class="stat-card stat-card-success fade-in-up" style="--delay: 0.2s">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <h3>In Stock</h3>
+                    <p class="stat-number" id="statInStock">0</p>
+                </div>
+            </div>
+            <div class="stat-card stat-card-warning fade-in-up" style="--delay: 0.3s">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-content">
+                    <h3>Low Stock</h3>
+                    <p class="stat-number" id="statLowStock">0</p>
+                </div>
+            </div>
+            <div class="stat-card stat-card-danger fade-in-up" style="--delay: 0.4s">
+                <div class="stat-icon">❌</div>
+                <div class="stat-content">
+                    <h3>Out of Stock</h3>
+                    <p class="stat-number" id="statOutOfStock">0</p>
+                </div>
+            </div>
+            <div class="stat-card stat-card-info fade-in-up" style="--delay: 0.5s">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <h3>On Discount</h3>
+                    <p class="stat-number" id="statOnDiscount">0</p>
+                </div>
+            </div>
+            <div class="stat-card stat-card-luxury fade-in-up" style="--delay: 0.6s">
+                <div class="stat-icon">👑</div>
+                <div class="stat-content">
+                    <h3>Limited Edition</h3>
+                    <p class="stat-number" id="statLimitedEdition">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <div class="admin-content">
+            <!-- ========== TOOLBAR & FILTERS ========== -->
+            <div class="admin-toolbar-wrapper fade-in-up" style="--delay: 0.2s">
+                <!-- Search Section -->
+                <div class="admin-search-section">
+                    <input 
+                        type="text" 
+                        id="adminSearchInput" 
+                        class="admin-search-input" 
+                        placeholder="🔍 Search products by name or brand...">
+                    <button class="admin-search-btn">🔎</button>
+                </div>
+
+                <!-- Filters Section -->
+                <div class="admin-filters-section">
+                    <div class="filter-group">
+                        <select id="filterBrand" class="admin-filter-select">
+                            <option value="">🏷️ All Brands</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <select id="filterStatus" class="admin-filter-select">
+                            <option value="">📊 All Status</option>
+                            <option value="in_stock">✅ In Stock</option>
+                            <option value="low_stock">⚠️ Low Stock</option>
+                            <option value="out_of_stock">❌ Out of Stock</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <select id="filterFeature" class="admin-filter-select">
+                            <option value="">✨ All Features</option>
+                            <option value="on_discount">💰 On Discount</option>
+                            <option value="limited_edition">👑 Limited Edition</option>
+                            <option value="featured">⭐ Featured</option>
+                            <option value="hot_deal">🔥 Hot Deal</option>
+                        </select>
+                    </div>
+
+                    <button id="resetFiltersBtn" class="admin-btn admin-btn-secondary">✕ Clear Filters</button>
+                </div>
+
+                <!-- Count & Action Section -->
+                <div class="admin-count-section">
+                    <span id="adminCount" class="admin-count-badge">0 products</span>
+                    <button class="admin-btn admin-btn-primary" id="addPerfumeBtn">+ Add New Perfume</button>
+                </div>
+            </div>
+
+            <!-- ========== BULK ACTIONS ========== -->
+            <div class="admin-bulk-actions fade-in-up" style="--delay: 0.3s" id="bulkActionsPanel" style="display: none;">
+                <div class="bulk-header">
+                    <span id="bulkSelectedCount">0 selected</span>
+                    <div class="bulk-buttons">
+                        <button class="admin-btn admin-btn-sm admin-btn-outline" id="bulkSelectAll">Select All</button>
+                        <button class="admin-btn admin-btn-sm admin-btn-secondary" id="bulkClear">Clear</button>
+                        <select id="bulkOperation" class="admin-filter-select admin-filter-select-sm">
+                            <option value="">Choose action...</option>
+                            <option value="mark_featured">⭐ Mark as Featured</option>
+                            <option value="mark_hot_deal">🔥 Mark as Hot Deal</option>
+                            <option value="mark_limited_edition">👑 Mark as Limited Edition</option>
+                            <option value="activate">✅ Activate</option>
+                            <option value="deactivate">❌ Deactivate</option>
+                        </select>
+                        <button class="admin-btn admin-btn-sm admin-btn-primary" id="bulkExecute">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== PRODUCTS TABLE ========== -->
+            <div class="admin-table-wrapper fade-in-up" style="--delay: 0.4s">
+                <table class="admin-table" id="adminTable">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-col">
+                                <input type="checkbox" id="selectAllCheckbox" class="table-checkbox">
+                            </th>
+                            <th>Image</th>
+                            <th>Product Name</th>
+                            <th>Brand</th>
+                            <th>Price</th>
+                            <th>Discount</th>
+                            <th>Stock</th>
+                            <th>Features</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody">
+                        <!-- Populated by JS -->
+                        <tr class="loading-row">
+                            <td colspan="9">
+                                <div class="spinner"></div>
+                                <span>Loading products...</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MODALS ========== -->
+
+    <!-- Add/Edit Product Modal -->
+    <div class="admin-modal" id="productModal">
+        <div class="admin-modal-content modal-lg">
+            <div class="admin-modal-header">
+                <h2 id="productModalTitle">Add New Perfume</h2>
+                <button class="admin-modal-close" id="productModalClose">&times;</button>
+            </div>
+            <div class="admin-modal-body">
+                <form id="productForm" class="admin-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Perfume Name *</label>
+                            <input type="text" id="fPerfumeName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Brand *</label>
+                            <select id="fBrand" class="form-input" required>
+                                <option value="">Select Brand</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Product Type *</label>
+                            <select id="fProductType" class="form-input" required>
+                                <option value="">Select Type</option>
+                                <option value="decant">Decant</option>
+                                <option value="full_bottle">Full Bottle</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Volume (ml) *</label>
+                            <input type="number" id="fVolume" class="form-input" min="0" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Price ($) *</label>
+                            <input type="number" id="fPrice" class="form-input" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock Quantity *</label>
+                            <input type="number" id="fStock" class="form-input" min="0" required>
+                        </div>
+                    </div>
+
+                    <!-- PREMIUM FEATURES SECTION -->
+                    <div class="premium-section">
+                        <h3>💎 Premium Features</h3>
+                        
+                        <!-- Discount Management -->
+                        <div class="feature-card">
+                            <h4>💰 Discount Management</h4>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Discount Type</label>
+                                    <select id="fDiscountType" class="form-input">
+                                        <option value="none">No Discount</option>
+                                        <option value="percentage">Percentage (%)</option>
+                                        <option value="fixed">Fixed Amount ($)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="discountValueGroup" style="display: none;">
+                                    <label id="discountHint">Discount Value</label>
+                                    <input type="number" id="fDiscountValue" class="form-input" min="0" step="0.01">
+                                </div>
+                                <div class="form-group" id="discountStartGroup" style="display: none;">
+                                    <label>Start Date</label>
+                                    <input type="datetime-local" id="fDiscountStart" class="form-input">
+                                </div>
+                                <div class="form-group" id="discountEndGroup" style="display: none;">
+                                    <label>End Date</label>
+                                    <input type="datetime-local" id="fDiscountEnd" class="form-input">
+                                </div>
+                            </div>
+                            <div class="price-preview">
+                                <span>Original Price: <strong id="origPricePreview">$0.00</strong></span>
+                                <span>→</span>
+                                <span>Final Price: <strong id="finalPricePreview">$0.00</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Limited Edition -->
+                        <div class="feature-card">
+                            <h4>👑 Limited Edition</h4>
+                            <div class="form-grid">
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="fIsLimitedEdition">
+                                        Mark as Limited Edition
+                                    </label>
+                                </div>
+                                <div class="form-group" id="limitedQtyGroup" style="display: none;">
+                                    <label>Limited Quantity</label>
+                                    <input type="number" id="fLimitedQty" class="form-input" min="1" value="100">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feature Tags -->
+                        <div class="feature-card">
+                            <h4>✨ Feature Tags</h4>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="fIsFeatured">
+                                    ⭐ Featured Product
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="fIsHotDeal">
+                                    🔥 Hot Deal
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="fIsActive">
+                                    ✅ Active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="admin-btn admin-btn-secondary" id="productFormCancel">Cancel</button>
+                        <button type="submit" class="admin-btn admin-btn-primary">Save Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Discount Modal -->
+    <div class="admin-modal" id="bulkDiscountModal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h2>Apply Bulk Discount</h2>
+                <button class="admin-modal-close" id="bulkDiscountClose">&times;</button>
+            </div>
+            <div class="admin-modal-body">
+                <form id="bulkDiscountForm" class="admin-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Discount Type *</label>
+                            <select id="bulkDiscountType" class="form-input" required>
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed Amount ($)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Discount Value *</label>
+                            <input type="number" id="bulkDiscountValue" class="form-input" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="admin-btn admin-btn-secondary" id="bulkDiscountCancel">Cancel</button>
+                        <button type="submit" class="admin-btn admin-btn-primary">Apply Discount</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="admin-modal" id="confirmModal">
+        <div class="admin-modal-content modal-sm">
+            <div class="admin-modal-header">
+                <h2 id="confirmTitle">Confirm Action</h2>
+                <button class="admin-modal-close" id="confirmClose">&times;</button>
+            </div>
+            <div class="admin-modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="admin-btn admin-btn-secondary" id="confirmCancel">Cancel</button>
+                <button class="admin-btn admin-btn-primary" id="confirmOk">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="admin-toast" id="adminToast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/admin-utils.js' %}"></script>
+    <script src="{% static 'js/admin-premium-dashboard.js' %}"></script>
+    <script>
+        // Initialize dashboard on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const dashboard = new AdminPremiumDashboard();
+            dashboard.init();
+        });
+    </script>
+</body>
+</html>

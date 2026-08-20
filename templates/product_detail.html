@@ -1,0 +1,298 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ product.perfume_name }} — {{ product.brand.brand_name }} | The Last Note</title>
+  <meta name="description" content="{{ product.perfume_name }} by {{ product.brand.brand_name }} — {{ product.sub_category }}, {{ product.volume_ml|floatformat:'-2' }}ml {{ product.category }}. Authentic, batch-traced, delivered nationwide."/>
+  <link rel="canonical" href="{{ product.url }}"/>
+  <meta property="og:title" content="{{ product.perfume_name }} — {{ product.brand.brand_name }}"/>
+  <meta property="og:description" content="{{ product.description|striptags|truncatechars:150 }}"/>
+  <meta property="og:type" content="product"/>
+  {% if product.images.0 %}<meta property="og:image" content="{{ product.images.0 }}"/>{% endif %}
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+  <link rel="stylesheet" href="{% static 'css/product-detail.css' %}"/>
+</head>
+<body>
+
+  <!-- ░░ TOAST ░░ -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  {% include 'partials/_navbar.html' %}
+  
+  <!-- CART SIDEBAR -->
+  {% include 'cart_sidebar_include.html' %}
+
+  <main class="pd-wrap">
+
+    <!-- ░░ BREADCRUMB ░░ -->
+    <nav class="pd-crumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a><span class="sep">/</span>
+      <a href="/shop/">Shop</a><span class="sep">/</span>
+      <a href="/shop/?brand_id={{ product.brand.brand_id }}">{{ product.brand.brand_name }}</a><span class="sep">/</span>
+      <span class="current">{{ product.perfume_name }}</span>
+    </nav>
+
+    <div class="pd-main">
+
+      <!-- ░░ GALLERY ░░ -->
+      <section class="pd-gallery" aria-label="Product images">
+        <div class="pd-stage" id="pdStage">
+          <img id="pdMainImage" src="{{ product.images.0 }}" alt="{{ product.perfume_name }} by {{ product.brand.brand_name }}"/>
+          <div class="pd-flags">
+            {% if product.product_type == 'decant' %}<span class="pd-flag brass">Decant</span>{% else %}<span class="pd-flag">Full Bottle</span>{% endif %}
+            {% if product.stock_state == 'low_stock' %}<span class="pd-flag sage">{{ product.stock_label }}</span>{% endif %}
+          </div>
+          <span class="pd-zoom-hint">Hover to zoom · click to lock</span>
+        </div>
+        <div class="pd-thumbs" id="pdThumbs">
+          {% for img in product.images %}
+            <button class="pd-thumb {% if forloop.first %}on{% endif %}" type="button" data-src="{{ img }}" aria-label="View image {{ forloop.counter }}">
+              <img src="{{ img }}" alt="{{ product.perfume_name }} view {{ forloop.counter }}" loading="lazy"/>
+            </button>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ░░ INFO ░░ -->
+      <section class="pd-info" aria-label="Product information">
+        <p class="pd-brand-line">
+          <a href="/shop/?brand_id={{ product.brand.brand_id }}">{{ product.brand.brand_name }}</a>
+          {% if product.brand.country_of_origin %}<span style="color:var(--c-fog)">·</span> <span style="color:var(--c-smoke)">{{ product.brand.country_of_origin }}</span>{% endif %}
+        </p>
+        <h1 class="pd-title">{{ product.perfume_name }}</h1>
+        <p class="pd-sub">{{ product.sub_category }} · {{ product.category }} · {{ product.volume_ml|floatformat:'-2' }}ml{% if product.brand.brand_name %} · SKU {{ product.product_id }}{% endif %}</p>
+
+        <div class="pd-rating-row">
+          <span class="pd-stars" id="pdStars" data-rating="{{ product.rating.average }}"></span>
+          <span id="pdRatingText">{{ product.rating.average }} · {{ product.rating.count }} review{{ product.rating.count|pluralize }}</span>
+          <a href="#reviews" style="color:var(--c-brass);">Read reviews</a>
+        </div>
+
+        <div class="pd-price-block">
+          <span class="pd-price" id="pdPrice">৳{{ product.price|floatformat:'-2' }}</span>
+          <span class="pd-price-note">Inclusive of authenticity traceability card</span>
+        </div>
+
+        <p class="pd-stock {{ product.stock_state }}"><span class="dot"></span>{{ product.stock_label }}</p>
+
+        <p class="pd-desc">{{ product.description|default:"A meticulously decanted fragrance, poured from a sealed, authenticated source bottle and sequenced for full traceability." }}</p>
+
+        {% if product.variants|length > 1 %}
+        <p class="pd-block-label">Choose your size</p>
+        <div class="pd-variants" id="pdVariants">
+          {% for v in product.variants %}
+            <a class="pd-variant {% if v.product_id == product.product_id %}on{% endif %}" href="{{ v.url }}">
+              <span class="v-size">{{ v.volume_ml|floatformat:'-2' }}ml · {% if v.product_type == 'decant' %}Decant{% else %}Full{% endif %}</span>
+              <span class="v-price">৳{{ v.price|floatformat:'-2' }}</span>
+            </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <p class="pd-block-label">Quantity</p>
+        <div class="pd-actions">
+          <div class="pd-qty">
+            <button type="button" id="pdQtyMinus" aria-label="Decrease quantity">−</button>
+            <input type="number" id="pdQty" value="1" min="1" max="{{ product.stock_quantity }}" aria-label="Quantity"/>
+            <button type="button" id="pdQtyPlus" aria-label="Increase quantity">+</button>
+          </div>
+
+          <button class="pd-btn" id="pdAddToCart" onclick="addToCart({{ product.product_id }})" {% if product.stock_state == 'out_of_stock' %}disabled{% endif %}>
+            {% if product.stock_state == 'out_of_stock' %}Out of Stock{% else %}Add to Cart{% endif %}
+          </button>
+
+          <button class="pd-btn ghost {% if in_wishlist %}on{% endif %}" id="pdWishlist" aria-label="Add to wishlist" aria-pressed="{% if in_wishlist %}true{% else %}false{% endif %}">
+            <svg viewBox="0 0 24 24" fill="{% if in_wishlist %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="1.5"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+            <span id="pdWishlistLabel">{% if in_wishlist %}Saved{% else %}Wishlist{% endif %}</span>
+          </button>
+        </div>
+
+        <div class="pd-assurance">
+          <div class="pd-assure">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <p><strong>Batch traced</strong>Every decant links to its sealed source bottle.</p>
+          </div>
+          <div class="pd-assure">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <p><strong>1–3 day delivery</strong>Dispatched within 24 hours of confirmation.</p>
+          </div>
+          <div class="pd-assure">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M20 6 9 17l-5-5"/></svg>
+            <p><strong>Authorised sourcing</strong>Purchased only from authorised retailers.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ░░ TABS: NOTES · SPECS · SHIPPING ░░ -->
+    <section class="pd-section" aria-label="Product details">
+      <div class="pd-tabs" role="tablist">
+        <button class="pd-tab on" data-panel="notes" role="tab">Fragrance Notes</button>
+        <button class="pd-tab" data-panel="specs" role="tab">Specifications</button>
+        <button class="pd-tab" data-panel="shipping" role="tab">Shipping &amp; Returns</button>
+      </div>
+
+      <div class="pd-panel on" id="panel-notes">
+        <div class="pd-notes">
+          <div class="pd-note-card">
+            <h4>Top Notes</h4>
+            <div class="pd-note-list">
+              {% for n in product.notes.top %}<span class="pd-chip">{{ n }}</span>{% empty %}<span class="pd-empty">Not documented</span>{% endfor %}
+            </div>
+          </div>
+          <div class="pd-note-card">
+            <h4>Heart Notes</h4>
+            <div class="pd-note-list">
+              {% for n in product.notes.middle %}<span class="pd-chip">{{ n }}</span>{% empty %}<span class="pd-empty">Not documented</span>{% endfor %}
+            </div>
+          </div>
+          <div class="pd-note-card">
+            <h4>Base Notes</h4>
+            <div class="pd-note-list">
+              {% for n in product.notes.base %}<span class="pd-chip">{{ n }}</span>{% empty %}<span class="pd-empty">Not documented</span>{% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pd-panel" id="panel-specs">
+        <dl class="pd-specs">
+          {% for s in product.specs %}
+            <div class="pd-spec"><dt>{{ s.label }}</dt><dd>{{ s.value }}</dd></div>
+          {% endfor %}
+          <div class="pd-spec"><dt>Stock</dt><dd>{{ product.stock_quantity }} units</dd></div>
+        </dl>
+      </div>
+
+      <div class="pd-panel" id="panel-shipping">
+        <p class="pd-desc" style="max-width:720px;margin:0;">
+          Orders are dispatched within 24 hours and delivered inside Dhaka in 1–3 business days.
+          Every order ships with a traceability card showing the source bottle batch number and your
+          decant's sequence number. Unopened, unused items can be returned within 3 days of delivery;
+          opened decants cannot be returned for hygiene reasons.
+        </p>
+      </div>
+    </section>
+
+    <!-- ░░ REVIEWS ░░ -->
+    <section class="pd-section" id="reviews" aria-label="Reviews">
+      <h2 class="pd-section-head">Reviews &amp; Ratings</h2>
+      <p class="pd-section-sub">Verified impressions from customers who wore this fragrance.</p>
+
+      <div class="pd-review-summary">
+        <div>
+          <div class="pd-score" id="pdScore">{{ product.rating.average }}</div>
+          <span class="pd-stars" data-rating="{{ product.rating.average }}"></span>
+          <p class="pd-score-sub" id="pdScoreSub">Based on {{ product.rating.count }} review{{ product.rating.count|pluralize }}</p>
+        </div>
+        <div class="pd-bars" id="pdBars"></div>
+      </div>
+
+      <div id="pdReviewList">
+        {% for r in reviews %}
+          <article class="pd-review">
+            <div class="pd-review-top">
+              <div>
+                <span class="pd-reviewer">{{ r.user_name }}</span>
+                {% if r.is_verified_purchase %}<span class="pd-verified">Verified purchase</span>{% endif %}
+              </div>
+              <div>
+                <span class="pd-stars" data-rating="{{ r.rating }}"></span>
+                <span class="pd-review-date">{{ r.created_display }}</span>
+              </div>
+            </div>
+            <p>{{ r.comment|default:"No written comment." }}</p>
+          </article>
+        {% empty %}
+          <p class="pd-empty" id="pdNoReviews">No reviews yet — be the first to share how this wears.</p>
+        {% endfor %}
+      </div>
+
+      <div class="pd-review-form">
+        <p class="pd-block-label" style="margin-top:0;">Write a review</p>
+        <div class="pd-star-pick" id="pdStarPick">
+          {% for i in "12345" %}
+            <button type="button" data-value="{{ forloop.counter }}" aria-label="{{ forloop.counter }} star">
+              <svg viewBox="0 0 24 24" stroke-width="1.4"><polygon points="12 2 15.1 8.6 22 9.5 17 14.5 18.2 21.5 12 18.2 5.8 21.5 7 14.5 2 9.5 8.9 8.6 12 2"/></svg>
+            </button>
+          {% endfor %}
+        </div>
+        <textarea id="pdReviewText" placeholder="How does it wear? Longevity, sillage, occasions…"></textarea>
+        <button class="pd-btn" id="pdReviewSubmit" style="flex:0 0 auto;">Publish Review</button>
+      </div>
+    </section>
+
+    <!-- ░░ RELATED ░░ -->
+    <section class="pd-section" aria-label="Related products">
+      <h2 class="pd-section-head">You May Also Like</h2>
+      <p class="pd-section-sub">Matched on brand, category and shared fragrance notes.</p>
+      <div class="pd-rail" id="pdRelated">
+        {% for p in related %}
+          <a class="pd-card" href="{{ p.url }}">
+            <div class="pd-card-img"><img src="{{ p.image_url|default:'/static/images/perfume-placeholder.svg' }}" alt="{{ p.perfume_name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/images/perfume-placeholder.svg';"/></div>
+            <div class="pd-card-body">
+              <p class="pd-card-brand">{{ p.brand_name }}</p>
+              <p class="pd-card-name">{{ p.perfume_name }}</p>
+              <p class="pd-card-meta">{{ p.concentration }} · {{ p.volume_ml|floatformat:'-2' }}ml</p>
+              <p class="pd-card-price">৳{{ p.price|floatformat:'-2' }}</p>
+            </div>
+          </a>
+        {% empty %}
+          <p class="pd-empty">No related fragrances yet.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- ░░ RECENTLY VIEWED ░░ -->
+    <section class="pd-section" aria-label="Recently viewed" id="pdRecentSection" {% if not recently %}style="display:none;"{% endif %}>
+      <h2 class="pd-section-head">Recently Viewed</h2>
+      <p class="pd-section-sub">Pick up where you left off.</p>
+      <div class="pd-rail" id="pdRecent">
+        {% for p in recently %}
+          <a class="pd-card" href="{{ p.url }}">
+            <div class="pd-card-img"><img src="{{ p.image_url|default:'/static/images/perfume-placeholder.svg' }}" alt="{{ p.perfume_name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/images/perfume-placeholder.svg';"/></div>
+            <div class="pd-card-body">
+              <p class="pd-card-brand">{{ p.brand_name }}</p>
+              <p class="pd-card-name">{{ p.perfume_name }}</p>
+              <p class="pd-card-meta">{{ p.concentration }} · {{ p.volume_ml|floatformat:'-2' }}ml</p>
+              <p class="pd-card-price">৳{{ p.price|floatformat:'-2' }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+
+  {% include 'partials/_footer.html' %}
+  {% include 'partials/_auth_modals.html' %}
+
+  {{ product|json_script:"pd-data" }}
+
+  <script src="{% static 'js/script.js' %}"></script>
+  <script src="{% static 'js/product-links.js' %}"></script>
+  <script src="{% static 'js/product-detail.js' %}"></script>
+  <script src="{% static 'js/add-to-cart.js' %}"></script>
+  
+  <script>
+  // Override the add to cart button handler
+  document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('pdAddToCart');
+      const qtyInput = document.getElementById('pdQty');
+      
+      if (btn && !btn.disabled) {
+          btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              const qty = parseInt(qtyInput.value) || 1;
+              const productId = {{ product.product_id }};
+              addToCart(productId, qty);
+          });
+      }
+  });
+  </script>
+</body>
+</html>

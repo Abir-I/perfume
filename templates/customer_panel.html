@@ -1,0 +1,874 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account — The Last Note</title>
+    <meta name="description" content="Manage your account, orders, and wishlist at The Last Note">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        /* ═══════════════════════════════════════════════════════════════
+           CUSTOMER PANEL STYLES
+           ═══════════════════════════════════════════════════════════════ */
+        
+        .customer-layout {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 40px;
+        }
+        
+        .customer-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-right: 1px solid #eee;
+            padding-right: 32px;
+        }
+        
+        .sidebar-heading {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            margin-top: 24px;
+        }
+        
+        .sidebar-heading:first-child {
+            margin-top: 0;
+        }
+        
+        .sidebar-link {
+            padding: 12px 16px;
+            color: #555;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .sidebar-link:hover {
+            background: #f5f5f5;
+            color: #1a1a2e;
+        }
+        
+        .sidebar-link.active {
+            background: #d4af37;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .customer-content {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+        
+        .panel-section {
+            display: none;
+        }
+        
+        .panel-section.active {
+            display: block;
+        }
+        
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 24px;
+        }
+        
+        /* DASHBOARD SECTION */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: #f9f9f9;
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+        
+        .stat-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 600;
+            color: #d4af37;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 8px;
+        }
+        
+        .recent-orders {
+            background: #f9f9f9;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .order-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: grid;
+            grid-template-columns: 120px 120px 120px 1fr;
+            gap: 16px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+        }
+        
+        .order-row {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: grid;
+            grid-template-columns: 120px 120px 120px 1fr;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .order-row:last-child {
+            border-bottom: none;
+        }
+        
+        .order-id {
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        
+        .order-date {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .order-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-shipped {
+            background: #cfe2ff;
+            color: #084298;
+        }
+        
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .order-total {
+            text-align: right;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        
+        /* PROFILE SECTION */
+        .profile-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background: #f9f9f9;
+            padding: 32px;
+            border-radius: 8px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+        }
+        
+        .form-input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+        
+        .btn-save {
+            grid-column: 1 / -1;
+            padding: 12px 24px;
+            background: #d4af37;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            width: fit-content;
+        }
+        
+        .btn-save:hover {
+            background: #c19a1a;
+            transform: translateY(-2px);
+        }
+        
+        /* ADDRESSES SECTION */
+        .addresses-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .address-card {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #eee;
+            position: relative;
+        }
+        
+        .address-card.default {
+            border-color: #d4af37;
+        }
+        
+        .address-default-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #d4af37;
+            color: #1a1a2e;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .address-line {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .address-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn-small {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-edit {
+            background: #e8e8e8;
+            color: #333;
+        }
+        
+        .btn-delete {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* WISHLIST SECTION */
+        .wishlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 24px;
+        }
+        
+        .wishlist-item {
+            background: #f9f9f9;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .wishlist-image {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+        }
+        
+        .wishlist-info {
+            padding: 16px;
+        }
+        
+        .wishlist-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        
+        .wishlist-brand {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 12px;
+        }
+        
+        .wishlist-price {
+            color: #d4af37;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .wishlist-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-add-cart-small {
+            flex: 1;
+            padding: 8px;
+            background: #d4af37;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .btn-remove-small {
+            padding: 8px 12px;
+            background: #f8d7da;
+            color: #721c24;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        /* NOTIFICATIONS */
+        .notifications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .notification-item {
+            background: #f9f9f9;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #d4af37;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        
+        .notification-message {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .notification-date {
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .empty-text {
+            font-size: 16px;
+            color: #999;
+        }
+        
+        @media (max-width: 768px) {
+            .customer-layout {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .customer-sidebar {
+                flex-direction: row;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+                padding-right: 0;
+                padding-bottom: 16px;
+                gap: 0;
+                overflow-x: auto;
+            }
+            
+            .sidebar-heading {
+                display: none;
+            }
+            
+            .sidebar-link {
+                white-space: nowrap;
+                padding: 8px 12px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .order-header,
+            .order-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .profile-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .addresses-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .wishlist-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="toast" role="status" aria-live="polite"></div>
+    
+    {% include 'partials/_navbar.html' %}
+    
+    <div class="customer-layout">
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="customer-sidebar">
+            <div class="sidebar-heading">Menu</div>
+            <a class="sidebar-link active" onclick="showSection('dashboard')">📊 Dashboard</a>
+            <a class="sidebar-link" onclick="showSection('profile')">👤 Profile</a>
+            <a class="sidebar-link" onclick="showSection('orders')">📦 Orders</a>
+            <a class="sidebar-link" onclick="showSection('addresses')">📍 Addresses</a>
+            <a class="sidebar-link" onclick="showSection('wishlist')">❤️ Wishlist</a>
+            <a class="sidebar-link" onclick="showSection('notifications')">🔔 Notifications</a>
+            <div class="sidebar-heading">Account</div>
+            <a class="sidebar-link" onclick="logout()">🚪 Logout</a>
+        </aside>
+        
+        <!-- MAIN CONTENT -->
+        <main class="customer-content">
+            
+            <!-- DASHBOARD SECTION -->
+            <section class="panel-section active" id="dashboard-section">
+                <h1 class="section-title">Dashboard</h1>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Total Orders</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">৳0</div>
+                        <div class="stat-label">Total Spent</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">৳0</div>
+                        <div class="stat-label">Avg Order</div>
+                    </div>
+                </div>
+                
+                <h3 class="section-title" style="font-size: 20px;">Recent Orders</h3>
+                <div class="recent-orders" id="recentOrdersContainer">
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-text">No orders yet</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- PROFILE SECTION -->
+            <section class="panel-section" id="profile-section">
+                <h1 class="section-title">Profile Information</h1>
+                <form class="profile-form" onsubmit="saveProfile(event)">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-input" id="profileName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="profileEmail" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" class="form-input" id="profilePhone">
+                    </div>
+                    <div class="form-group full">
+                        <button type="submit" class="btn-save">Save Changes</button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- ORDERS SECTION -->
+            <section class="panel-section" id="orders-section">
+                <h1 class="section-title">Orders</h1>
+                <div id="ordersContainer">
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-text">No orders found</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ADDRESSES SECTION -->
+            <section class="panel-section" id="addresses-section">
+                <h1 class="section-title">Saved Addresses</h1>
+                <div class="addresses-grid" id="addressesGrid"></div>
+                <button class="btn-save" onclick="addNewAddress()">+ Add New Address</button>
+            </section>
+            
+            <!-- WISHLIST SECTION -->
+            <section class="panel-section" id="wishlist-section">
+                <h1 class="section-title">My Wishlist</h1>
+                <div class="wishlist-grid" id="wishlistGrid">
+                    <div class="empty-state" style="grid-column:1/-1;">
+                        <div class="empty-icon">❤️</div>
+                        <div class="empty-text">Your wishlist is empty</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- NOTIFICATIONS SECTION -->
+            <section class="panel-section" id="notifications-section">
+                <h1 class="section-title">Notifications</h1>
+                <div class="notifications-list" id="notificationsList">
+                    <div class="empty-state">
+                        <div class="empty-icon">🔔</div>
+                        <div class="empty-text">No notifications</div>
+                    </div>
+                </div>
+            </section>
+            
+        </main>
+    </div>
+    
+    {% include 'partials/_footer.html' %}
+    
+    <script src="{% static 'js/script.js' %}"></script>
+    <script>
+        let currentUser = null;
+        
+        // Show/Hide sections
+        function showSection(section) {
+            document.querySelectorAll('.panel-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            
+            document.getElementById(`${section}-section`).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Load data for section
+            if (section === 'dashboard') loadDashboard();
+            else if (section === 'profile') loadProfile();
+            else if (section === 'orders') loadOrders();
+            else if (section === 'addresses') loadAddresses();
+            else if (section === 'wishlist') loadWishlist();
+            else if (section === 'notifications') loadNotifications();
+        }
+        
+        // Load dashboard stats
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/accounts/customer/dashboard-stats/', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+                
+                const stats = document.querySelectorAll('.stat-value');
+                stats[0].textContent = data.total_orders;
+                stats[1].textContent = `৳${data.total_spent.toFixed(0)}`;
+                stats[2].textContent = data.pending_orders;
+                stats[3].textContent = `৳${data.average_order.toFixed(0)}`;
+                
+                // Recent orders table
+                let html = '';
+                if (data.recent_orders.length > 0) {
+                    html = `
+                        <div class="order-header">
+                            <div>Order ID</div>
+                            <div>Date</div>
+                            <div>Status</div>
+                            <div>Amount</div>
+                        </div>
+                    `;
+                    data.recent_orders.forEach(order => {
+                        const statusClass = `status-${order.status}`;
+                        html += `
+                            <div class="order-row">
+                                <div class="order-id">#${order.id}</div>
+                                <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
+                                <div><span class="order-status ${statusClass}">${order.status}</span></div>
+                                <div class="order-total">৳${order.total.toFixed(2)}</div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('recentOrdersContainer').innerHTML = html || '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No orders yet</div></div>';
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        // Load profile
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/accounts/customer/profile/', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+                
+                document.getElementById('profileName').value = data.name;
+                document.getElementById('profileEmail').value = data.email;
+                document.getElementById('profilePhone').value = data.phone || '';
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+        
+        // Save profile
+        async function saveProfile(e) {
+            e.preventDefault();
+            try {
+                const response = await fetch('/api/accounts/customer/profile/', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: document.getElementById('profileName').value,
+                        phone: document.getElementById('profilePhone').value
+                    })
+                });
+                
+                if (response.ok) {
+                    showToast('✅ Profile updated successfully');
+                }
+            } catch (error) {
+                showToast('❌ Error updating profile');
+            }
+        }
+        
+        // Load orders
+        async function loadOrders() {
+            try {
+                const response = await fetch('/api/accounts/customer/orders/', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+                
+                let html = '';
+                if (data.orders.length > 0) {
+                    html = `
+                        <div class="order-header">
+                            <div>Order ID</div>
+                            <div>Date</div>
+                            <div>Status</div>
+                            <div>Amount</div>
+                        </div>
+                    `;
+                    data.orders.forEach(order => {
+                        const statusClass = `status-${order.status}`;
+                        html += `
+                            <div class="order-row">
+                                <div class="order-id">#${order.id}</div>
+                                <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
+                                <div><span class="order-status ${statusClass}">${order.status}</span></div>
+                                <div class="order-total">৳${order.total.toFixed(2)}</div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('ordersContainer').innerHTML = html || '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No orders found</div></div>';
+            } catch (error) {
+                console.error('Error loading orders:', error);
+            }
+        }
+        
+        // Load addresses
+        async function loadAddresses() {
+            try {
+                const response = await fetch('/api/accounts/customer/addresses/', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+                
+                let html = '';
+                data.addresses.forEach(addr => {
+                    html += `
+                        <div class="address-card ${addr.default ? 'default' : ''}">
+                            ${addr.default ? '<div class="address-default-badge">Default</div>' : ''}
+                            <div class="address-line"><strong>${addr.line1}</strong></div>
+                            <div class="address-line">${addr.line2 || ''}</div>
+                            <div class="address-line">${addr.city}, ${addr.postal}</div>
+                            <div class="address-line">${addr.country}</div>
+                            <div class="address-line">📱 ${addr.phone}</div>
+                            <div class="address-actions">
+                                <button class="btn-small btn-edit">Edit</button>
+                                <button class="btn-small btn-delete">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('addressesGrid').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading addresses:', error);
+            }
+        }
+        
+        // Load wishlist
+        async function loadWishlist() {
+            try {
+                const response = await fetch('/api/accounts/customer/wishlist/', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+                
+                let html = '';
+                if (data.items.length > 0) {
+                    data.items.forEach(item => {
+                        html += `
+                            <div class="wishlist-item">
+                                <img src="${item.image}" alt="${item.name}" class="wishlist-image">
+                                <div class="wishlist-info">
+                                    <div class="wishlist-name">${item.name}</div>
+                                    <div class="wishlist-brand">${item.brand}</div>
+                                    <div class="wishlist-price">৳${item.price.toFixed(2)}</div>
+                                    <div class="wishlist-actions">
+                                        <button class="btn-add-cart-small" onclick="addToCart(${item.product_id})">Add to Cart</button>
+                                        <button class="btn-remove-small" onclick="removeFromWishlist(${item.product_id})">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('wishlistGrid').innerHTML = html || '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon">❤️</div><div class="empty-text">Your wishlist is empty</div></div>';
+            } catch (error) {
+                console.error('Error loading wishlist:', error);
+            }
+        }
+        
+        // Load notifications
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/accounts/customer/notifications/', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+                
+                let html = '';
+                data.notifications.forEach(notif => {
+                    html += `
+                        <div class="notification-item">
+                            <div class="notification-title">${notif.title}</div>
+                            <div class="notification-message">${notif.message}</div>
+                            <div class="notification-date">${new Date(notif.date).toLocaleDateString()}</div>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('notificationsList').innerHTML = html || '<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-text">No notifications</div></div>';
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+        
+        // Helper functions
+        function getToken() {
+            return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+        }
+        
+        function logout() {
+            localStorage.removeItem('access_token');
+            sessionStorage.removeItem('access_token');
+            window.location.href = '/';
+        }
+        
+        function addNewAddress() {
+            alert('Address form will open here');
+        }
+        
+        function removeFromWishlist(productId) {
+            // Call API to remove
+            showToast('Removed from wishlist');
+        }
+        
+        function addToCart(productId) {
+            showToast('Added to cart');
+        }
+        
+        // Load dashboard on page load
+        loadDashboard();
+    </script>
+</body>
+</html>

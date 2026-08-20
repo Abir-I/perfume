@@ -1,0 +1,1558 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - The Last Note</title>
+    <meta name="description" content="Manage your account, orders, and preferences">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #fafaf8;
+            color: #333;
+        }
+
+        /* HEADER */
+        .dashboard-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 50px 0 30px;
+        }
+
+        .dashboard-header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .dashboard-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .dashboard-header p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* MAIN CONTAINER */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* LAYOUT */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 40px;
+        }
+
+        /* SIDEBAR */
+        .dashboard-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #999;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            background: white;
+            color: #666;
+            text-decoration: none;
+            display: block;
+        }
+
+        .nav-item:hover {
+            background: #f5f5f3;
+            border-left-color: #FF6B9D;
+            color: #FF6B9D;
+        }
+
+        .nav-item.active {
+            background: #fff5f8;
+            border-left-color: #FF6B9D;
+            color: #FF6B9D;
+            font-weight: 500;
+        }
+
+        .nav-item.logout {
+            color: #e74c3c;
+        }
+
+        .nav-item.logout:hover {
+            background: #fee;
+            border-left-color: #e74c3c;
+        }
+
+        /* CONTENT */
+        .dashboard-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* CARDS */
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #FF6B9D;
+            margin: 10px 0;
+        }
+
+        .stat-card .stat-label {
+            font-size: 13px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* STATS GRID */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* ORDERS TABLE */
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .orders-table th {
+            background: #fafaf8;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .orders-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .orders-table tbody tr:hover {
+            background: #fff5f8;
+        }
+
+        .order-number {
+            font-weight: 600;
+            color: #FF6B9D;
+            cursor: pointer;
+        }
+
+        .order-number:hover {
+            text-decoration: underline;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .status-badge.pending { background: #fff3cd; color: #856404; }
+        .status-badge.confirmed { background: #d1ecf1; color: #0c5460; }
+        .status-badge.processing { background: #d1ecf1; color: #0c5460; }
+        .status-badge.shipped { background: #d1ecf1; color: #0c5460; }
+        .status-badge.delivered { background: #d4edda; color: #155724; }
+        .status-badge.cancelled { background: #f8d7da; color: #721c24; }
+
+        /* PROFILE FORM */
+        .profile-form {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #FF6B9D;
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #FF6B9D;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #e55a8d;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        /* REVIEWS */
+        .review-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .review-product {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .review-rating {
+            color: #FFB800;
+            font-weight: 600;
+        }
+
+        .review-text {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .review-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .empty-state-text {
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        /* ORDER DETAIL */
+        .order-detail {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .order-detail-header {
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .order-detail-header h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .order-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .order-detail-item {
+            padding: 15px;
+            background: #fafaf8;
+            border-radius: 4px;
+        }
+
+        .order-detail-item-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .order-detail-item-value {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* TRACKING */
+        .tracking-timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .tracking-item {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .tracking-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 40px;
+            width: 2px;
+            height: 60px;
+            background: #ddd;
+        }
+
+        .tracking-item.completed::after {
+            background: #FF6B9D;
+        }
+
+        .tracking-dot {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .tracking-item.completed .tracking-dot {
+            background: #FF6B9D;
+            border-color: #FF6B9D;
+        }
+
+        .tracking-content h4 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .tracking-content p {
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar-nav {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .nav-item {
+                text-align: center;
+                padding: 10px;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+            }
+
+            .nav-item.active {
+                border-left: none;
+                border-bottom-color: #FF6B9D;
+                background: #fff5f8;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .orders-table {
+                font-size: 12px;
+            }
+
+            .orders-table th,
+            .orders-table td {
+                padding: 10px;
+            }
+        }
+
+        /* LOADER */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FF6B9D;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .notification.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .notification.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    
+        /* Premium customer order experience */
+        .orders-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding:28px 30px;margin-bottom:22px;background:linear-gradient(135deg,#171a2b,#222943);border-radius:18px;color:#fff;box-shadow:0 18px 45px rgba(18,22,38,.12)}
+        .orders-eyebrow{display:block;color:#d4af37;font-size:10px;letter-spacing:2.4px;font-weight:700;margin-bottom:9px}
+        .orders-hero h2{font-family:'Playfair Display',serif;font-size:32px;font-weight:500;margin:0 0 7px}.orders-hero p{margin:0;color:rgba(255,255,255,.72);font-size:13px}.orders-shop-link{color:#d4af37;text-decoration:none;border:1px solid rgba(212,175,55,.45);padding:11px 16px;border-radius:999px;white-space:nowrap;font-size:12px}.orders-toolbar-premium{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:20px}.order-filters{display:flex;gap:6px;flex-wrap:wrap}.order-filter{border:1px solid #e7e2d6;background:#fff;color:#6b6b70;border-radius:999px;padding:9px 14px;font-size:11px;cursor:pointer;transition:.2s}.order-filter:hover,.order-filter.active{background:#1a1a2e;color:#d4af37;border-color:#1a1a2e}.order-search-wrap{display:flex;align-items:center;gap:7px;border:1px solid #e7e2d6;background:#fff;border-radius:999px;padding:0 13px;min-width:210px}.order-search-wrap input{border:0;outline:0;padding:10px 0;width:100%;font-size:12px;background:transparent}.premium-order-card{background:#fff;border:1px solid #ece8df;border-radius:16px;margin-bottom:15px;overflow:hidden;box-shadow:0 7px 25px rgba(25,25,25,.045);transition:.25s}.premium-order-card:hover{transform:translateY(-2px);box-shadow:0 15px 35px rgba(25,25,25,.08)}.premium-order-top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 20px;border-bottom:1px solid #f0ede6}.premium-order-id{font-family:'Playfair Display',serif;font-size:18px;color:#1a1a2e}.premium-order-date{font-size:11px;color:#999;margin-top:4px}.premium-order-total{text-align:right;font-weight:700;color:#1a1a2e}.premium-order-total small{display:block;color:#999;font-size:10px;font-weight:400;margin-bottom:3px}.premium-order-body{padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.mini-items{display:flex;gap:10px;align-items:center}.mini-item{width:58px;height:58px;border-radius:10px;background:#f7f4ee;border:1px solid #ece7dc;overflow:hidden;display:flex;align-items:center;justify-content:center}.mini-item img{width:100%;height:100%;object-fit:cover}.mini-item.more{font-size:12px;color:#777;font-weight:600}.premium-order-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.premium-order-pill{font-size:10px;padding:6px 9px;border-radius:999px;background:#f8f6f1;color:#65656a}.premium-order-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.premium-btn{border:1px solid #d8c99d;background:#1a1a2e;color:#d4af37;padding:9px 13px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;text-decoration:none}.premium-btn.secondary{background:#fff;color:#1a1a2e;border-color:#ddd8cd}.premium-btn.danger{background:#fff;color:#b44444;border-color:#e8caca}.premium-empty{background:#fff;border:1px dashed #ddd6c9;border-radius:16px;padding:60px 20px;text-align:center}.premium-empty-icon{font-size:34px;margin-bottom:12px}.premium-empty h3{font-family:'Playfair Display',serif;font-size:24px;color:#1a1a2e;margin-bottom:7px}.premium-empty p{color:#888;font-size:13px}.order-detail-premium{background:#fff;border:1px solid #ebe6dc;border-radius:18px;padding:24px;box-shadow:0 14px 35px rgba(25,25,25,.06)}.order-detail-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding-bottom:20px;border-bottom:1px solid #eee9df}.order-detail-head h3{font-family:'Playfair Display',serif;font-size:27px;font-weight:500;color:#1a1a2e;margin:0}.order-detail-head p{color:#999;font-size:12px;margin:7px 0 0}.order-detail-grid-premium{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}.detail-tile{background:#faf8f3;border:1px solid #eee9df;border-radius:12px;padding:14px}.detail-tile .label{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:#999;margin-bottom:6px}.detail-tile .value{font-size:13px;color:#1a1a2e;font-weight:600}.detail-tile.total .value{font-family:'Playfair Display',serif;font-size:22px;color:#a88619}.detail-section-title{font-family:'Playfair Display',serif;font-size:19px;color:#1a1a2e;margin:25px 0 12px}.premium-item-row{display:grid;grid-template-columns:68px 1fr auto;gap:14px;align-items:center;padding:13px 0;border-bottom:1px solid #eee9df}.premium-item-image{width:68px;height:68px;border-radius:10px;object-fit:cover;background:#f5f2eb}.premium-item-name{font-weight:600;color:#1a1a2e;font-size:13px}.premium-item-sub{font-size:11px;color:#999;margin-top:4px}.premium-item-price{text-align:right;font-weight:700;color:#1a1a2e}.premium-timeline{position:relative;margin:12px 0 5px;padding-left:4px}.premium-timeline-item{display:grid;grid-template-columns:24px 1fr;gap:12px;position:relative;padding-bottom:20px}.premium-timeline-item:not(:last-child) .tl-line{position:absolute;left:11px;top:24px;width:2px;height:calc(100% - 14px);background:#e2dccd}.tl-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ece8df;color:#999;font-size:11px;z-index:1}.premium-timeline-item.done .tl-dot{background:#1a1a2e;color:#d4af37}.premium-timeline-item.current .tl-dot{background:#d4af37;color:#1a1a2e;box-shadow:0 0 0 5px rgba(212,175,55,.12)}.tl-title{font-size:12px;font-weight:700;color:#1a1a2e}.tl-date{font-size:10px;color:#999;margin-top:3px}.tl-note{font-size:11px;color:#777;margin-top:4px}.detail-two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}.premium-info-card{background:#faf8f3;border:1px solid #eee9df;border-radius:12px;padding:16px;font-size:12px;line-height:1.7;color:#555}.premium-info-card strong{display:block;font-size:9px;text-transform:uppercase;letter-spacing:1.3px;color:#999;margin-bottom:6px}.detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid #eee9df}@media(max-width:800px){.orders-hero{align-items:flex-start;flex-direction:column}.orders-toolbar-premium{align-items:stretch;flex-direction:column}.order-search-wrap{min-width:0}.order-detail-grid-premium{grid-template-columns:1fr 1fr}.premium-order-body{grid-template-columns:1fr}.premium-order-actions{justify-content:flex-start}.detail-two-col{grid-template-columns:1fr}}@media(max-width:520px){.orders-hero h2{font-size:27px}.premium-order-top{align-items:flex-start;flex-direction:column}.premium-order-total{text-align:left}.order-detail-grid-premium{grid-template-columns:1fr}.premium-item-row{grid-template-columns:55px 1fr}.premium-item-image{width:55px;height:55px}.premium-item-price{grid-column:2;text-align:left}.order-filters{overflow:auto;flex-wrap:nowrap;padding-bottom:3px}.order-filter{white-space:nowrap}}
+        /* Premium dashboard refinement */
+        .dashboard-intro{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding:28px 30px;margin-bottom:24px;border:1px solid #ece6da;border-radius:18px;background:radial-gradient(circle at 85% 15%,rgba(212,175,55,.13),transparent 30%),linear-gradient(135deg,#fff,#fbf8f1);box-shadow:0 16px 40px rgba(25,25,25,.05)}
+        .dashboard-eyebrow{display:block;color:#a88619;font-size:9px;font-weight:700;letter-spacing:2px;margin-bottom:8px}.dashboard-intro h2{font-family:'Playfair Display',serif;font-size:30px;font-weight:500;color:#1a1a2e;margin:0 0 7px}.dashboard-intro p{font-size:12px;color:#85858a;margin:0;max-width:580px}.dashboard-quick-actions{display:flex;gap:8px;flex-wrap:wrap}.dashboard-quick-actions button,.dashboard-quick-actions a{border:1px solid #d8c99d;background:#1a1a2e;color:#d4af37;padding:10px 14px;border-radius:999px;font-size:10px;font-weight:700;text-decoration:none;cursor:pointer}.dashboard-quick-actions a{background:#fff;color:#1a1a2e;border-color:#ddd8cd}
+        .dashboard-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:34px}.premium-stat{position:relative;text-align:left;padding:18px 18px 16px;border:1px solid #eee9df;border-radius:14px;box-shadow:0 7px 22px rgba(25,25,25,.045);overflow:hidden}.premium-stat:after{content:'';position:absolute;right:-28px;top:-28px;width:85px;height:85px;border-radius:50%;background:rgba(212,175,55,.08)}.premium-stat .stat-icon{font-family:'Playfair Display',serif;color:#b28d24;font-size:17px;line-height:1;margin-bottom:10px}.premium-stat .stat-value{font-family:'Playfair Display',serif;font-size:27px;margin:6px 0 3px}.premium-stat .money-stat{font-size:23px}.premium-stat .stat-caption{font-size:10px;color:#aaa}.dashboard-section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;margin:0 0 13px}.dashboard-section-heading span{font-size:9px;letter-spacing:1.8px;color:#a88619;font-weight:700}.dashboard-section-heading h3{font-family:'Playfair Display',serif;font-size:20px;font-weight:500;color:#1a1a2e;margin:4px 0 0}.dashboard-section-heading button{border:0;background:none;color:#a88619;font-size:11px;font-weight:700;cursor:pointer}.dashboard-order-list{background:#fff;border:1px solid #ece8df;border-radius:15px;overflow:hidden;box-shadow:0 8px 26px rgba(25,25,25,.04);margin-bottom:28px}.dashboard-order-row{display:grid;grid-template-columns:1.15fr .8fr .55fr;gap:18px;align-items:center;padding:16px 18px;border-bottom:1px solid #f0ede7}.dashboard-order-row:last-child{border-bottom:0}.dashboard-order-row:hover{background:#fffbf6}.dashboard-order-main{display:flex;flex-direction:column;gap:4px}.dashboard-order-number{border:0;background:none;padding:0;text-align:left;font-family:'Playfair Display',serif;color:#e65b87;font-size:15px;cursor:pointer}.dashboard-order-main span,.dashboard-order-items{font-size:10px;color:#999}.dashboard-order-middle{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.dashboard-order-end{display:flex;justify-content:flex-end;align-items:center;gap:14px}.dashboard-order-end strong{font-size:13px;color:#1a1a2e}.dashboard-order-end button{border:0;background:none;color:#a88619;font-size:10px;font-weight:700;cursor:pointer}.review-card{border:1px solid #ece8df;border-radius:14px;background:#fff;padding:16px 18px;box-shadow:0 7px 22px rgba(25,25,25,.04);margin-bottom:10px}.review-card .review-header{display:flex;justify-content:space-between;gap:12px}.review-card .review-product{font-weight:700;color:#1a1a2e}.review-card .review-rating{color:#a88619;font-weight:700}.review-card .review-text{font-size:12px;color:#777;line-height:1.6;margin:8px 0}.review-card .review-date{font-size:10px;color:#aaa}
+        .return-hero{background:linear-gradient(135deg,#201a2f,#30233e)}.return-refresh{background:transparent;color:#d4af37;cursor:pointer;font-family:inherit}.return-empty{background:#fff;border:1px dashed #ddd6c9;border-radius:16px;padding:58px 20px;text-align:center}.return-card{background:#fff;border:1px solid #ece8df;border-radius:16px;margin-bottom:13px;box-shadow:0 8px 25px rgba(25,25,25,.045);overflow:hidden}.return-card-top{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:17px 19px;border-bottom:1px solid #f0ede7}.return-order{font-family:'Playfair Display',serif;font-size:18px;color:#1a1a2e}.return-date{font-size:10px;color:#999;margin-top:4px}.return-status{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:700;background:#f2f0eb;color:#6f6b63}.return-status.pending{background:#fff5d8;color:#876b11}.return-status.approved{background:#eaf5ed;color:#2f6b42}.return-status.rejected,.return-status.cancelled{background:#faeaea;color:#9a3f3f}.return-status.received{background:#e8f1fb;color:#315b83}.return-status.refunded{background:#eee9fb;color:#684f98}.return-card-body{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:17px 19px}.return-reason-label{font-size:9px;text-transform:uppercase;letter-spacing:1.4px;color:#aaa;margin-bottom:5px}.return-reason{font-size:13px;font-weight:700;color:#1a1a2e}.return-details{font-size:11px;color:#777;line-height:1.6;margin:7px 0 0}.return-admin-note{font-size:11px;color:#765e19;background:#fffaf0;border:1px solid #f0e3bd;border-radius:8px;padding:8px 10px;margin:8px 0 0}.return-refund{text-align:right;min-width:145px}.return-refund span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:#aaa;margin-bottom:4px}.return-refund strong{display:block;font-family:'Playfair Display',serif;font-size:19px;color:#a88619;margin-bottom:8px}.return-refund .premium-btn{font-size:9px}.return-pill{background:#f4eefb;color:#6b5196}.return-pill.eligible{background:#fff8e7;color:#876b11}.return-btn{background:#5b3b69;border-color:#5b3b69;color:#fff}.return-detail-box{margin-top:18px;padding:13px 15px;border:1px solid #eadfca;border-radius:12px;background:#fffaf0;color:#5f5646}.return-detail-box>div{display:flex;justify-content:space-between;align-items:center;gap:10px}.return-detail-box strong{font-size:12px}.return-detail-box p{font-size:11px;margin:7px 0 0;line-height:1.6}.return-detail-box b{display:block;margin-top:8px;color:#a88619}.return-detail-box.eligible{background:#faf8f3}.return-modal{position:fixed;inset:0;z-index:10000;background:rgba(18,20,31,.58);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:20px}.return-modal.open{display:flex}.return-modal-card{width:min(560px,100%);background:#fff;border-radius:18px;padding:24px;box-shadow:0 25px 80px rgba(0,0,0,.2)}.return-modal-head{display:flex;justify-content:space-between;gap:18px;margin-bottom:20px}.return-modal-head h3{font-family:'Playfair Display',serif;font-size:25px;font-weight:500;color:#1a1a2e;margin:2px 0 6px}.return-modal-head p{font-size:11px;color:#888;line-height:1.5}.return-close{border:0;background:#f5f2eb;width:32px;height:32px;border-radius:50%;font-size:20px;cursor:pointer;color:#555}.return-label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#777;margin:0 0 7px}.return-label span{font-weight:400;text-transform:none;letter-spacing:0;color:#aaa}.return-field{width:100%;border:1px solid #ded8cc;border-radius:9px;background:#fff;padding:11px 12px;font:inherit;font-size:12px;color:#333;outline:none;margin-bottom:16px}.return-field:focus{border-color:#b28d24;box-shadow:0 0 0 3px rgba(178,141,36,.1)}.return-textarea{min-height:120px;resize:vertical}.return-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+        .status-badge.pending{background:#fff3cd;color:#856404}.status-badge.confirmed,.status-badge.processing,.status-badge.shipped{background:#e8f1fb;color:#315b83}.status-badge.delivered{background:#eaf5ed;color:#2f6b42}.status-badge.cancelled{background:#faeaea;color:#9a3f3f}
+        @media(max-width:1050px){.dashboard-stats{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:800px){.dashboard-intro{align-items:flex-start;flex-direction:column}.dashboard-order-row{grid-template-columns:1fr}.dashboard-order-end{justify-content:space-between}.return-card-body{grid-template-columns:1fr}.return-refund{text-align:left}.return-refund strong{display:inline-block;margin-right:10px}.return-refund .premium-btn{display:inline-block}}
+        @media(max-width:520px){.dashboard-stats{grid-template-columns:1fr}.dashboard-intro h2{font-size:26px}.dashboard-quick-actions{width:100%}.dashboard-quick-actions button,.dashboard-quick-actions a{flex:1;text-align:center}.return-card-top{align-items:flex-start;flex-direction:column}}
+
+        .account-section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px}.account-section-head>div>span{font-size:9px;letter-spacing:1.8px;color:#a88619;font-weight:700}.account-section-head h2{font-family:'Playfair Display',serif;font-size:25px;font-weight:500;color:#1a1a2e;margin:4px 0 0}.address-form-premium{background:#fff;border:1px solid #ece8df;border-radius:15px;padding:18px;margin-bottom:16px;box-shadow:0 8px 25px rgba(25,25,25,.04)}.address-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.address-form-grid input{border:1px solid #ded8cc;border-radius:9px;padding:11px 12px;font:inherit;font-size:12px;outline:0}.address-form-grid input:focus{border-color:#b28d24}.address-default{display:flex;align-items:center;gap:8px;font-size:11px;color:#666;margin:13px 0}.address-default input{width:auto}.address-form-actions{display:flex;justify-content:flex-end;gap:8px}.address-grid-premium{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.address-card-premium{background:#fff;border:1px solid #ece8df;border-radius:14px;padding:17px;box-shadow:0 7px 22px rgba(25,25,25,.04)}.address-card-premium.default{border-color:#d7c17d;box-shadow:0 8px 25px rgba(168,134,25,.08)}.address-card-head{display:flex;justify-content:space-between;align-items:center;color:#a88619;font-size:9px;letter-spacing:1.5px;font-weight:700;margin-bottom:12px}.address-card-head b{font-size:12px}.address-card-premium h3{font-family:'Playfair Display',serif;font-size:17px;font-weight:500;color:#1a1a2e;margin-bottom:7px}.address-card-premium p{font-size:11px;line-height:1.7;color:#777}.wishlist-grid-premium{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.wishlist-card-premium{display:grid;grid-template-columns:110px 1fr;background:#fff;border:1px solid #ece8df;border-radius:14px;overflow:hidden;box-shadow:0 7px 22px rgba(25,25,25,.04)}.wishlist-image-wrap{background:#f7f4ee;min-height:145px;display:flex;align-items:center;justify-content:center;overflow:hidden}.wishlist-image-wrap img{width:100%;height:100%;object-fit:cover}.wishlist-image-wrap span{font-family:'Playfair Display',serif;font-size:28px;color:#b28d24}.wishlist-card-body{padding:14px}.wishlist-brand{font-size:9px;text-transform:uppercase;letter-spacing:1.4px;color:#aaa}.wishlist-card-body h3{font-family:'Playfair Display',serif;font-size:16px;font-weight:500;color:#1a1a2e;margin:5px 0}.wishlist-card-body>strong{font-size:13px;color:#a88619}.wishlist-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.wishlist-actions .premium-btn{font-size:9px;padding:8px 10px}.review-verified{font-size:9px;color:#7a8b77;margin:6px 0 0}@media(max-width:800px){.address-grid-premium,.wishlist-grid-premium{grid-template-columns:1fr}}@media(max-width:520px){.account-section-head{align-items:flex-start;flex-direction:column}.address-form-grid{grid-template-columns:1fr}.wishlist-card-premium{grid-template-columns:85px 1fr}.wishlist-image-wrap{min-height:125px}}
+
+        /* =====================================================================
+           THE LAST NOTE — LUXURY ACCOUNT REFINEMENT
+           Visual-only refinement: keeps existing dashboard behavior and APIs.
+           ===================================================================== */
+        :root{
+            --lux-navy:#11162a;
+            --lux-navy-2:#1b2037;
+            --lux-gold:#c7a64a;
+            --lux-gold-soft:#e8d8a7;
+            --lux-rose:#e75c88;
+            --lux-ivory:#fbfaf7;
+            --lux-line:#e9e4d9;
+            --lux-muted:#8c8a86;
+        }
+        body{
+            background:
+                radial-gradient(circle at 9% 8%,rgba(199,166,74,.055),transparent 23%),
+                radial-gradient(circle at 92% 35%,rgba(231,92,136,.035),transparent 20%),
+                #faf9f6;
+            color:#252533;
+        }
+        .dashboard-header{
+            position:relative;
+            overflow:hidden;
+            padding:34px 0 30px;
+            background:
+                radial-gradient(circle at 78% -40%,rgba(199,166,74,.18),transparent 36%),
+                linear-gradient(135deg,#0d1224 0%,#171d34 56%,#10162a 100%);
+            border-bottom:1px solid rgba(199,166,74,.16);
+            box-shadow:0 14px 38px rgba(14,18,35,.13);
+        }
+        .dashboard-header:before{
+            content:'';position:absolute;left:-80px;top:-100px;width:270px;height:270px;border:1px solid rgba(199,166,74,.09);border-radius:50%;
+        }
+        .dashboard-header:after{
+            content:'';position:absolute;right:7%;bottom:-62px;width:180px;height:180px;border:1px solid rgba(255,255,255,.045);border-radius:50%;
+        }
+        .dashboard-header .container{max-width:1320px;position:relative;z-index:1;padding:0 28px;display:flex;align-items:center;gap:16px}
+        .dashboard-header .account-mark{
+            width:48px;height:48px;display:grid;place-items:center;border:1px solid rgba(199,166,74,.45);border-radius:50%;
+            color:var(--lux-gold);font-family:'Playfair Display',serif;font-size:19px;background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 5px rgba(199,166,74,.035)
+        }
+        .dashboard-header .header-copy{display:flex;flex-direction:column;gap:4px}
+        .dashboard-header .header-kicker{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--lux-gold-soft);font-weight:700}
+        .dashboard-header h1{font-size:30px;line-height:1.05;margin:0;font-weight:500;letter-spacing:-.3px}
+        .dashboard-header p{font-size:11px;opacity:.68;margin:0;letter-spacing:.1px}
+        .dashboard-container{max-width:1320px;padding:42px 28px 70px}
+        .dashboard-grid{grid-template-columns:245px minmax(0,1fr);gap:34px;align-items:start}
+        .dashboard-sidebar{
+            position:sticky;top:24px;gap:18px;padding:18px 14px 14px;background:rgba(255,255,255,.84);backdrop-filter:blur(12px);
+            border:1px solid rgba(225,220,209,.9);border-radius:20px;box-shadow:0 18px 45px rgba(28,28,36,.055)
+        }
+        .dashboard-sidebar:before{
+            content:'THE LAST NOTE';display:block;padding:2px 10px 12px;color:#b08b2a;font-size:8px;font-weight:800;letter-spacing:2.3px
+        }
+        .sidebar-section{gap:6px}
+        .sidebar-title{font-size:8px;letter-spacing:2px;color:#aaa59c;margin:5px 10px 5px}
+        .sidebar-nav{gap:3px}
+        .nav-item{
+            position:relative;padding:11px 12px;border:1px solid transparent;border-left:1px solid transparent;border-radius:10px;
+            background:transparent;color:#66636a;font-size:11px;letter-spacing:.05px;transition:all .24s ease
+        }
+        .nav-item:hover{background:#fbf8f1;border-color:#eee7d9;border-left-color:#d1ad58;color:#8f7020;transform:translateX(2px)}
+        .nav-item.active{background:linear-gradient(90deg,#fff5f8,#fffaf5);border-color:#f0e4df;border-left:2px solid var(--lux-rose);color:#d84e7d;box-shadow:0 5px 16px rgba(30,25,35,.035)}
+        .nav-item.logout{margin-top:4px;color:#b45d57}
+        .nav-item.logout:hover{background:#fff7f6;border-color:#f0d8d4;border-left-color:#c46a62}
+        .nav-icon{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:7px;border:1px solid #ebe6dc;border-radius:7px;background:#fff;color:#b28d24;font-size:9px;vertical-align:middle}
+        .nav-item.active .nav-icon{border-color:#f3d5df;background:#fff;color:#df5c86}
+        .dashboard-content{gap:28px;min-width:0}
+        .dashboard-intro{
+            position:relative;min-height:142px;padding:30px 32px;margin-bottom:22px;border-radius:20px;
+            border:1px solid #e9e1d0;
+            background:
+                radial-gradient(circle at 92% 8%,rgba(199,166,74,.18),transparent 28%),
+                radial-gradient(circle at 70% 120%,rgba(231,92,136,.055),transparent 35%),
+                linear-gradient(135deg,#fffefa,#f8f4e9);
+            box-shadow:0 18px 45px rgba(35,31,25,.065);overflow:hidden
+        }
+        .dashboard-intro:after{content:'✦';position:absolute;right:28px;bottom:14px;color:rgba(176,139,42,.14);font-size:64px;font-family:'Playfair Display',serif;pointer-events:none}
+        .dashboard-eyebrow{font-size:8px;letter-spacing:2.7px;color:#a07c20;margin-bottom:10px}
+        .dashboard-intro h2{font-size:31px;letter-spacing:-.25px;margin-bottom:8px}
+        .dashboard-intro p{font-size:11px;line-height:1.7;max-width:590px;color:#88837a}
+        .dashboard-quick-actions{position:relative;z-index:2}
+        .dashboard-quick-actions button,.dashboard-quick-actions a{padding:10px 15px;font-size:9px;letter-spacing:.35px;box-shadow:0 6px 14px rgba(15,18,34,.08)}
+        .dashboard-quick-actions button:hover,.dashboard-quick-actions a:hover{transform:translateY(-1px);box-shadow:0 9px 18px rgba(15,18,34,.11)}
+        .dashboard-stats{gap:13px;margin-bottom:31px}
+        .premium-stat{
+            min-height:122px;padding:17px 18px;border-radius:16px;background:rgba(255,255,255,.92);border-color:#ebe5d9;
+            box-shadow:0 9px 25px rgba(29,29,34,.045);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease
+        }
+        .premium-stat:hover{transform:translateY(-3px);border-color:#e0d4b5;box-shadow:0 15px 31px rgba(29,29,34,.075)}
+        .premium-stat:before{content:'';position:absolute;left:18px;right:18px;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--lux-gold),transparent);opacity:.45}
+        .premium-stat:after{width:95px;height:95px;background:rgba(199,166,74,.07)}
+        .premium-stat .stat-icon{font-size:15px;color:#b08a2b;margin-bottom:8px}
+        .premium-stat .stat-value{font-size:26px;margin:4px 0 4px;color:#e65b87}
+        .premium-stat .stat-caption{font-size:9px;letter-spacing:.15px;color:#aaa49a}
+        .dashboard-section-heading{margin:2px 0 12px;padding:0 2px}
+        .dashboard-section-heading span{font-size:8px;letter-spacing:2.2px}
+        .dashboard-section-heading h3{font-size:22px;margin-top:3px}
+        .dashboard-section-heading button{font-size:9px;letter-spacing:.4px}
+        .dashboard-order-list{border-radius:16px;box-shadow:0 10px 28px rgba(25,25,25,.045);border-color:#e9e3d8;margin-bottom:29px}
+        .dashboard-order-row{padding:16px 19px;transition:background .18s ease}
+        .dashboard-order-row:hover{background:#fffaf5}
+        .dashboard-order-number{font-size:14px}
+        .dashboard-order-end strong{font-size:12px}
+        .dashboard-order-end button{font-size:9px}
+        .review-card{border-radius:15px;box-shadow:0 9px 25px rgba(25,25,25,.04);border-color:#e9e3d8}
+        .loader{margin:30px auto}
+        @media(max-width:1050px){.dashboard-container{padding-left:20px;padding-right:20px}.dashboard-header .container{padding-left:20px;padding-right:20px}}
+        @media(max-width:800px){.dashboard-sidebar{position:static}.dashboard-grid{grid-template-columns:1fr;gap:22px}.dashboard-sidebar{padding:12px}.dashboard-sidebar:before{padding-bottom:7px}.dashboard-sidebar .sidebar-section{display:block}.dashboard-sidebar .sidebar-nav{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}.dashboard-sidebar .sidebar-title{margin-top:10px}.dashboard-sidebar .sidebar-section:last-child .sidebar-nav{display:block}.dashboard-intro{min-height:0}}
+        @media(max-width:520px){.dashboard-header{padding:27px 0}.dashboard-header .container{align-items:flex-start}.dashboard-header .account-mark{width:42px;height:42px}.dashboard-header h1{font-size:26px}.dashboard-container{padding:26px 14px 50px}.dashboard-intro{padding:24px 22px;border-radius:17px}.dashboard-intro h2{font-size:27px}.dashboard-sidebar .sidebar-nav{grid-template-columns:1fr 1fr}.dashboard-quick-actions{width:100%}.dashboard-quick-actions button,.dashboard-quick-actions a{flex:1}}
+
+</style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="account-mark" aria-hidden="true">LN</div>
+            <div class="header-copy">
+                <span class="header-kicker">The Last Note · Private Account</span>
+                <h1>My Account</h1>
+                <p>Manage your orders, profile, preferences and fragrance journey.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="dashboard-container">
+        <div id="notifications"></div>
+
+        <div class="dashboard-grid">
+            <!-- SIDEBAR -->
+            <aside class="dashboard-sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Dashboard</div>
+                    <div class="sidebar-nav">
+                        <a class="nav-item active" onclick="showSection('dashboard', this)"><span class="nav-icon">01</span>Dashboard</a>
+                        <a class="nav-item" onclick="showSection('profile', this)"><span class="nav-icon">02</span>Profile</a>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Shopping</div>
+                    <div class="sidebar-nav">
+                        <a class="nav-item" onclick="showSection('orders', this)"><span class="nav-icon">03</span>My Orders</a>
+                        <a class="nav-item" onclick="showSection('returns', this)"><span class="nav-icon">04</span>Returns</a>
+                        <a class="nav-item" onclick="showSection('reviews', this)"><span class="nav-icon">05</span>My Reviews</a>
+                        <a class="nav-item" onclick="showSection('wishlist', this)"><span class="nav-icon">06</span>Wishlist</a>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Account</div>
+                    <div class="sidebar-nav">
+                        <a class="nav-item" onclick="showSection('addresses', this)"><span class="nav-icon">07</span>Addresses</a>
+                        <a class="nav-item" onclick="showSection('settings', this)"><span class="nav-icon">08</span>Settings</a>
+                        <a class="nav-item" onclick="showSection('activity', this)"><span class="nav-icon">09</span>Activity</a>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-nav">
+                        <a class="nav-item logout" onclick="logout()"><span class="nav-icon">↗</span>Logout</a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- CONTENT -->
+            <main class="dashboard-content">
+                <!-- DASHBOARD SECTION -->
+                <section id="dashboard" class="section active">
+                    <div class="dashboard-intro">
+                        <div><span class="dashboard-eyebrow">THE LAST NOTE · PRIVATE ACCOUNT</span><h2>Welcome back<span id="dashboardName"></span>.</h2><p>Your orders, returns, saved pieces and fragrance activity — all in one place.</p></div>
+                        <div class="dashboard-quick-actions"><button type="button" onclick="showSection('orders', document.querySelector('.nav-item[onclick*=\"orders\"]'))">My Orders</button><a href="/shop/">Explore Collection</a></div>
+                    </div>
+                    <div class="stats-grid dashboard-stats" id="statsGrid">
+                        <div class="loader"></div>
+                    </div>
+
+                    <div class="dashboard-section-heading"><div><span>ORDER ACTIVITY</span><h3>Recent Orders</h3></div><button type="button" onclick="showSection('orders', document.querySelector('.nav-item[onclick*=\"orders\"]'))">View all →</button></div>
+                    <div id="recentOrdersContainer">
+                        <div class="loader"></div>
+                    </div>
+
+                    <div class="dashboard-section-heading"><div><span>YOUR NOTES</span><h3>Recent Reviews</h3></div><button type="button" onclick="showSection('reviews', document.querySelector('.nav-item[onclick*=\"reviews\"]'))">View all →</button></div>
+                    <div id="recentReviewsContainer">
+                        <div class="loader"></div>
+                    </div>
+                </section>
+
+                <!-- PROFILE SECTION -->
+                <section id="profile" class="section">
+                    <h2 style="margin-bottom: 30px; font-family: 'Playfair Display', serif; font-size: 24px;">Profile Settings</h2>
+                    
+                    <div class="profile-form" id="profileForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" id="firstName" placeholder="First name">
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" id="lastName" placeholder="Last name">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="email" placeholder="Email address">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" id="phone" placeholder="Phone number">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ORDERS SECTION -->
+                <section id="orders" class="section">
+                    <div class="orders-hero">
+                        <div>
+                            <span class="orders-eyebrow">YOUR FRAGRANCE JOURNEY</span>
+                            <h2>My Orders</h2>
+                            <p>Track every bottle, decant and delivery from one elegant space.</p>
+                        </div>
+                        <a class="orders-shop-link" href="/shop/">Continue Shopping →</a>
+                    </div>
+                    <div class="orders-toolbar-premium">
+                        <div class="order-filters" role="tablist" aria-label="Order filters">
+                            <button class="order-filter active" data-filter="all" onclick="filterOrders('all', this)">All</button>
+                            <button class="order-filter" data-filter="Pending" onclick="filterOrders('Pending', this)">Pending</button>
+                            <button class="order-filter" data-filter="Processing" onclick="filterOrders('Processing', this)">Processing</button>
+                            <button class="order-filter" data-filter="Shipped" onclick="filterOrders('Shipped', this)">Shipped</button>
+                            <button class="order-filter" data-filter="Delivered" onclick="filterOrders('Delivered', this)">Delivered</button>
+                            <button class="order-filter" data-filter="Cancelled" onclick="filterOrders('Cancelled', this)">Cancelled</button>
+                        </div>
+                        <div class="order-search-wrap">
+                            <span>⌕</span><input id="orderSearch" type="search" placeholder="Search order number..." oninput="filterOrders(currentOrderFilter)">
+                        </div>
+                    </div>
+                    <div id="ordersContainer">
+                        <div class="loader"></div>
+                    </div>
+                </section>
+
+                <!-- RETURNS SECTION -->
+                <section id="returns" class="section">
+                    <div class="orders-hero return-hero">
+                        <div>
+                            <span class="orders-eyebrow">AFTER-SALES CARE</span>
+                            <h2>Returns & Refunds</h2>
+                            <p>Request a return for eligible delivered orders and follow its review status.</p>
+                        </div>
+                        <button class="orders-shop-link return-refresh" type="button" onclick="loadReturns()">Refresh</button>
+                    </div>
+                    <div id="returnsContainer">
+                        <div class="loader"></div>
+                    </div>
+                </section>
+
+                <!-- REVIEWS SECTION -->
+                <section id="reviews" class="section">
+                    <h2 style="margin-bottom: 30px; font-family: 'Playfair Display', serif; font-size: 24px;">My Reviews</h2>
+                    
+                    <div id="reviewsContainer">
+                        <div class="loader"></div>
+                    </div>
+                </section>
+
+                <!-- WISHLIST SECTION -->
+                <section id="wishlist" class="section">
+                    <h2 style="margin-bottom: 30px; font-family: 'Playfair Display', serif; font-size: 24px;">My Wishlist</h2>
+                    
+                    <div id="wishlistContainer">
+                        <div class="loader"></div>
+                    </div>
+                    <div id="wishlistLegacyEmpty" style="display:none"><div class="empty-state">
+                            <div class="empty-state-icon">❤️</div>
+                            <div class="empty-state-title">No items in your wishlist</div>
+                            <div class="empty-state-text">Add items to your wishlist to save them for later</div>
+                            <a href="/shop/" class="btn btn-primary">Continue Shopping</a>
+                        </div></div>
+                </section>
+
+                <!-- ADDRESSES SECTION -->
+                <section id="addresses" class="section">
+                    <div class="account-section-head"><div><span>DELIVERY DETAILS</span><h2>Saved Addresses</h2></div><button type="button" class="premium-btn" onclick="toggleAddressForm()">+ Add Address</button></div>
+                    <div class="address-form-premium" id="addressForm" style="display:none">
+                        <div class="address-form-grid"><input id="addrLine1" placeholder="Address line 1"><input id="addrLine2" placeholder="Address line 2 (optional)"><input id="addrCity" placeholder="City"><input id="addrState" placeholder="State / Division"><input id="addrPostal" placeholder="Postal code"><input id="addrCountry" placeholder="Country" value="Bangladesh"></div>
+                        <label class="address-default"><input type="checkbox" id="addrDefault"> Make this my default address</label>
+                        <div class="address-form-actions"><button type="button" class="premium-btn secondary" onclick="toggleAddressForm(false)">Cancel</button><button type="button" class="premium-btn" onclick="addAddress()">Save Address</button></div>
+                    </div>
+                    <div id="addressesContainer">
+                        <div class="loader"></div>
+                    </div>
+                </section>
+
+                <!-- SETTINGS SECTION -->
+                <section id="settings" class="section">
+                    <h2 style="margin-bottom: 30px; font-family: 'Playfair Display', serif; font-size: 24px;">Settings</h2>
+                    
+                    <div class="profile-form">
+                        <h3 style="margin-bottom: 20px; font-size: 16px;">Notifications</h3>
+                        
+                        <div class="form-group" style="display: flex; align-items: center; margin-bottom: 15px;">
+                            <input type="checkbox" id="notifOrders" checked style="width: auto; margin-right: 10px;">
+                            <label style="margin: 0;">Notify me about order updates</label>
+                        </div>
+
+                        <div class="form-group" style="display: flex; align-items: center; margin-bottom: 15px;">
+                            <input type="checkbox" id="notifPromo" style="width: auto; margin-right: 10px;">
+                            <label style="margin: 0;">Promotional offers and discounts</label>
+                        </div>
+
+                        <div class="form-group" style="display: flex; align-items: center; margin-bottom: 15px;">
+                            <input type="checkbox" id="notifReviews" checked style="width: auto; margin-right: 10px;">
+                            <label style="margin: 0;">Review reminders</label>
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: center; margin-bottom: 20px;">
+                            <input type="checkbox" id="notifWishlist" checked style="width: auto; margin-right: 10px;">
+                            <label style="margin: 0;">Wishlist availability alerts</label>
+                        </div>
+
+                        <button class="btn btn-primary" onclick="updateSettings()">Save Settings</button>
+                    </div>
+                </section>
+
+                <!-- ACTIVITY SECTION -->
+                <section id="activity" class="section">
+                    <h2 style="margin-bottom: 30px; font-family: 'Playfair Display', serif; font-size: 24px;">Activity</h2>
+                    
+                    <div id="activityContainer">
+                        <div class="loader"></div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- RETURN REQUEST MODAL -->
+    <div class="return-modal" id="returnModal" aria-hidden="true">
+        <div class="return-modal-card" role="dialog" aria-modal="true" aria-labelledby="returnModalTitle">
+            <div class="return-modal-head"><div><span class="orders-eyebrow">AFTER-SALES CARE</span><h3 id="returnModalTitle">Request a Return</h3><p>Tell us what went wrong and our team will review your request.</p></div><button type="button" class="return-close" onclick="closeReturnModal()">×</button></div>
+            <input type="hidden" id="returnOrderId">
+            <label class="return-label" for="returnReason">Reason</label>
+            <select id="returnReason" class="return-field"><option value="">Select a reason</option><option>Damaged product</option><option>Wrong product</option><option>Product not as described</option><option>Quality issue</option><option>Changed my mind</option><option>Other</option></select>
+            <label class="return-label" for="returnDetails">Additional details <span>(optional)</span></label>
+            <textarea id="returnDetails" class="return-field return-textarea" maxlength="1000" placeholder="Describe the issue, packaging condition, or anything our team should know..."></textarea>
+            <div class="return-modal-actions"><button type="button" class="premium-btn secondary" onclick="closeReturnModal()">Not now</button><button type="button" class="premium-btn return-btn" id="submitReturnBtn" onclick="submitReturnRequest()">Submit Return Request</button></div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        const API_BASE = '/api/accounts';
+        const TOKEN = localStorage.getItem('access_token');
+
+        // ==============================================================================
+        // INITIALIZATION
+        // ==============================================================================
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Dashboard loaded');
+            
+            if (!TOKEN) {
+                alert('Please login first');
+                window.location.href = '/';
+                return;
+            }
+
+            // Load dashboard data
+            await loadDashboard();
+        });
+
+        // ==============================================================================
+        // SECTION NAVIGATION
+        // ==============================================================================
+
+        function showSection(sectionName, navElement) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            const section = document.getElementById(sectionName);
+            if (!section) return;
+            section.classList.add('active');
+            if (navElement) navElement.classList.add('active');
+
+            switch(sectionName) {
+                case 'dashboard': loadDashboard(); break;
+                case 'profile': loadProfile(); break;
+                case 'orders': loadOrders(); break;
+                case 'wishlist': loadWishlist(); break;
+                case 'returns': loadReturns(); break;
+                case 'reviews': loadReviews(); break;
+                case 'addresses': loadAddresses(); break;
+                case 'settings': loadSettings(); break;
+                case 'activity': loadActivity(); break;
+            }
+        }
+
+        // ==============================================================================
+        // DASHBOARD
+        // ==============================================================================
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/dashboard/`, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load dashboard');
+
+                const data = await response.json();
+
+                // Render stats
+                const firstName = data.user?.first_name ? `, ${safeText(data.user.first_name)}` : '';
+                document.getElementById('dashboardName').innerHTML = firstName;
+                const statsHTML = `
+                    <div class="stat-card premium-stat"><div class="stat-icon">✦</div><div class="stat-label">Total Orders</div><div class="stat-value">${data.stats.total_orders}</div><div class="stat-caption">Lifetime purchases</div></div>
+                    <div class="stat-card premium-stat"><div class="stat-icon">৳</div><div class="stat-label">Total Spent</div><div class="stat-value money-stat">৳${Number(data.stats.total_spent || 0).toLocaleString('en-BD',{maximumFractionDigits:0})}</div><div class="stat-caption">Across all orders</div></div>
+                    <div class="stat-card premium-stat"><div class="stat-icon">◷</div><div class="stat-label">Active Orders</div><div class="stat-value">${data.stats.pending_orders}</div><div class="stat-caption">Pending to shipped</div></div>
+                    <div class="stat-card premium-stat"><div class="stat-icon">★</div><div class="stat-label">Reviews</div><div class="stat-value">${data.stats.total_reviews}</div><div class="stat-caption">Your fragrance notes</div></div>
+                `;
+                document.getElementById('statsGrid').innerHTML = statsHTML;
+
+                // Render recent orders
+                const ordersHTML = data.recent_orders.length > 0 ? `
+                    <div class="dashboard-order-list">
+                        ${data.recent_orders.map(order => `
+                            <div class="dashboard-order-row">
+                                <div class="dashboard-order-main"><button type="button" class="dashboard-order-number" onclick="viewOrderDetail(${order.id})">${safeText(order.number)}</button><span>${new Date(order.date).toLocaleDateString('en-BD',{year:'numeric',month:'short',day:'numeric'})}</span></div>
+                                <div class="dashboard-order-middle"><span class="status-badge ${orderStatusClass(order.status)}">${safeText(order.status_display)}</span><span class="dashboard-order-items">${order.items_count} ${order.items_count === 1 ? 'item' : 'items'}</span></div>
+                                <div class="dashboard-order-end"><strong>${money(order.total)}</strong><button type="button" onclick="viewOrderDetail(${order.id})">Details →</button></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '<div class="empty-state"><div class="empty-state-icon">✦</div><div class="empty-state-title">Your fragrance story starts here</div><div class="empty-state-text">Explore the collection and your first order will appear here.</div><a href="/shop/" class="btn btn-primary">Explore Collection</a></div>';
+
+                document.getElementById('recentOrdersContainer').innerHTML = ordersHTML;
+
+                // Render recent reviews
+                const reviewsHTML = data.recent_reviews.length > 0 ? 
+                    data.recent_reviews.map(review => `
+                        <div class="review-card">
+                            <div class="review-header">
+                                <span class="review-product">${safeText(review.product)}</span>
+                                <span class="review-rating">${review.rating}★</span>
+                            </div>
+                            <p class="review-text">${safeText(review.comment)}</p>
+                            <p class="review-date">${new Date(review.date).toLocaleDateString()}</p>
+                        </div>
+                    `).join('') :
+                    '<div class="empty-state"><div class="empty-state-title">No reviews yet</div></div>';
+
+                document.getElementById('recentReviewsContainer').innerHTML = reviewsHTML;
+
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                showNotification('Error loading dashboard', 'error');
+            }
+        }
+
+        // ==============================================================================
+        // PROFILE
+        // ==============================================================================
+
+        async function loadProfile() {
+            try {
+                const response = await fetch(`${API_BASE}/profile/`, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load profile');
+
+                const data = await response.json();
+
+                document.getElementById('firstName').value = data.first_name;
+                document.getElementById('lastName').value = data.last_name;
+                document.getElementById('email').value = data.email;
+                document.getElementById('phone').value = data.phone || '';
+
+            } catch (error) {
+                console.error('Profile error:', error);
+                showNotification('Error loading profile', 'error');
+            }
+        }
+
+        async function updateProfile() {
+            try {
+                const response = await fetch(`${API_BASE}/profile/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        first_name: document.getElementById('firstName').value,
+                        last_name: document.getElementById('lastName').value,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to update profile');
+
+                showNotification('Profile updated successfully', 'success');
+
+            } catch (error) {
+                console.error('Update profile error:', error);
+                showNotification('Error updating profile', 'error');
+            }
+        }
+
+        // ==============================================================================
+        // ORDERS
+        // ==============================================================================
+
+        let allCustomerOrders = [];
+        let currentOrderFilter = 'all';
+
+        function orderStatusClass(status) { return String(status || '').toLowerCase(); }
+        function money(v) { return `৳${Number(v || 0).toLocaleString('en-BD', {minimumFractionDigits:2, maximumFractionDigits:2})}`; }
+        function safeText(value) { const d=document.createElement('div'); d.textContent=String(value ?? ''); return d.innerHTML; }
+        function productImage(url) {
+            if (!url) return '';
+            if (/^https?:\/\//i.test(url)) return url;
+            return url.startsWith('/') ? url : `/media/${url}`;
+        }
+
+        function renderOrderCards() {
+            const container = document.getElementById('ordersContainer');
+            const q = (document.getElementById('orderSearch')?.value || '').trim().toLowerCase();
+            const filtered = allCustomerOrders.filter(order => {
+                const statusOk = currentOrderFilter === 'all' || order.status === currentOrderFilter;
+                const textOk = !q || String(order.number || '').toLowerCase().includes(q);
+                return statusOk && textOk;
+            });
+            if (!filtered.length) {
+                container.innerHTML = `<div class="premium-empty"><div class="premium-empty-icon">◌</div><h3>No matching orders</h3><p>Try another filter or discover a new signature fragrance.</p><a class="premium-btn" href="/shop/">Explore the Collection</a></div>`;
+                return;
+            }
+            container.innerHTML = filtered.map(order => `
+                <article class="premium-order-card">
+                    <div class="premium-order-top">
+                        <div><div class="premium-order-id">${safeText(order.number)}</div><div class="premium-order-date">${new Date(order.date).toLocaleString('en-BD',{dateStyle:'medium',timeStyle:'short'})}</div></div>
+                        <div class="premium-order-total"><small>ORDER TOTAL</small>${money(order.total)}</div>
+                    </div>
+                    <div class="premium-order-body">
+                        <div>
+                            <div class="mini-items"><div class="mini-item">✦</div><div class="premium-order-pill">${order.items_count} ${order.items_count === 1 ? 'item' : 'items'}</div><div class="premium-order-pill">${safeText(order.payment_method || 'Cash on Delivery')}</div></div>
+                            <div class="premium-order-meta"><span class="status-badge ${orderStatusClass(order.status)}">${safeText(order.status_display)}</span>${order.can_cancel ? '<span class="premium-order-pill">Cancellation available</span>' : ''}${order.return_request?.exists ? `<span class="premium-order-pill return-pill">Return: ${safeText(returnStatusLabel(order.return_request.status))}</span>` : (order.return_request?.can_request ? '<span class="premium-order-pill return-pill eligible">Return eligible</span>' : '')}</div>
+                        </div>
+                        <div class="premium-order-actions"><button class="premium-btn" onclick="viewOrderDetail(${order.id})">View Details</button><a class="premium-btn secondary" href="/order-tracking/?id=${order.id}">Track Order</a>${order.can_cancel ? `<button class="premium-btn danger" onclick="cancelOrder(${order.id})">Cancel</button>` : ''}${order.return_request?.can_request ? `<button class="premium-btn return-btn" onclick="requestReturn(${order.id})">Return</button>` : ''}</div>
+                    </div>
+                </article>`).join('');
+        }
+
+        function filterOrders(filter='all', button) {
+            currentOrderFilter = filter || 'all';
+            document.querySelectorAll('.order-filter').forEach(b => b.classList.toggle('active', b.dataset.filter === currentOrderFilter));
+            renderOrderCards();
+        }
+
+        async function loadOrders() {
+            try {
+                const response = await fetch(`/api/orders/`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+                if (!response.ok) throw new Error('Failed to load orders');
+                const data = await response.json();
+                allCustomerOrders = data.orders || [];
+                renderOrderCards();
+            } catch (error) {
+                console.error('Orders error:', error);
+                document.getElementById('ordersContainer').innerHTML = `<div class="premium-empty"><h3>We couldn't load your orders</h3><p>${safeText(error.message)}</p><button class="premium-btn" onclick="loadOrders()">Try Again</button></div>`;
+            }
+        }
+
+        async function viewOrderDetail(orderId) {
+            try {
+                const response = await fetch(`/api/orders/${orderId}/`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+                if (!response.ok) throw new Error('Failed to load order details');
+                const data = await response.json();
+                const order = data.order;
+                const history = data.tracking_history || [];
+                const statuses = ['Pending','Confirmed','Processing','Shipped','Delivered'];
+                const progress = statuses.indexOf(order.status);
+                const timeline = statuses.map((status, idx) => {
+                    const event = history.find(h => h.status === status);
+                    const cls = idx < progress ? 'done' : (idx === progress ? 'current' : '');
+                    return `<div class="premium-timeline-item ${cls}"><div class="tl-dot">${idx < progress ? '✓' : (idx === progress ? '●' : '○')}</div>${idx < statuses.length-1 ? '<span class="tl-line"></span>' : ''}<div><div class="tl-title">${status}</div><div class="tl-date">${event ? new Date(event.timestamp).toLocaleString('en-BD') : (idx < progress ? 'Completed' : 'Upcoming')}</div>${event?.message ? `<div class="tl-note">${safeText(event.message)}</div>` : ''}</div></div>`;
+                }).join('');
+                const items = data.items || [];
+                const itemRows = items.map(item => `
+                    <div class="premium-item-row">
+                        <img class="premium-item-image" src="${safeText(productImage(item.image || item.product_image))}" onerror="this.style.visibility='hidden'" alt="">
+                        <div><div class="premium-item-name">${safeText(item.name)}</div><div class="premium-item-sub">${safeText(item.brand)} · ${safeText(item.product_type)} · ${item.volume_ml} ml · Qty ${item.quantity}</div></div>
+                        <div class="premium-item-price">${money(item.total)}<div class="premium-item-sub">${money(item.unit_price)} each</div></div>
+                    </div>`).join('');
+                const shipping = order.shipping || {};
+                const html = `
+                    <div class="order-detail-premium">
+                        <div class="order-detail-head"><div><h3>${safeText(order.number)}</h3><p>Placed ${new Date(order.date).toLocaleString('en-BD',{dateStyle:'full',timeStyle:'short'})}</p></div><span class="status-badge ${orderStatusClass(order.status)}">${safeText(order.status_display)}</span></div>
+                        <div class="order-detail-grid-premium"><div class="detail-tile"><div class="label">Payment</div><div class="value">${safeText(order.payment_method || 'Cash on Delivery')}</div></div><div class="detail-tile"><div class="label">Payment Status</div><div class="value">${safeText(order.payment_status || 'Pending')}</div></div><div class="detail-tile"><div class="label">Items</div><div class="value">${items.length} ${items.length===1?'item':'items'}</div></div><div class="detail-tile total"><div class="label">Order Total</div><div class="value">${money(order.total)}</div></div></div>
+                        <div class="detail-section-title">Your items</div><div>${itemRows}</div>
+                        <div class="detail-section-title">Order progress</div><div class="premium-timeline">${timeline}</div>
+                        <div class="detail-section-title">Delivery & payment</div><div class="detail-two-col"><div class="premium-info-card"><strong>Delivering to</strong>${safeText(shipping.name)}<br>${safeText(shipping.phone)}<br>${safeText(shipping.address_line1)}${shipping.address_line2 ? ', '+safeText(shipping.address_line2):''}<br>${safeText(shipping.city)}${shipping.state ? ', '+safeText(shipping.state):''} ${safeText(shipping.postal_code)}<br>${safeText(shipping.country)}</div><div class="premium-info-card"><strong>Order summary</strong><div style="display:flex;justify-content:space-between"><span>Subtotal</span><b>${money(order.subtotal)}</b></div><div style="display:flex;justify-content:space-between"><span>Delivery</span><b>${money(order.shipping_cost)}</b></div><div style="display:flex;justify-content:space-between"><span>Discount</span><b>- ${money(order.discount)}</b></div><div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid #e8e2d6"><span>Total</span><b>${money(order.total)}</b></div></div></div>
+                        ${order.return_request?.exists ? `<div class="return-detail-box"><div><strong>Return request</strong><span class="return-status ${returnStatusClass(order.return_request.status)}">${safeText(returnStatusLabel(order.return_request.status))}</span></div><p>${safeText(order.return_request.reason || '')}${order.return_request.admin_note ? ` · ${safeText(order.return_request.admin_note)}` : ''}</p>${order.return_request.refund_amount != null ? `<b>${money(order.return_request.refund_amount)}</b>` : ''}</div>` : (order.return_request?.eligible ? `<div class="return-detail-box eligible"><div><strong>Return window</strong><span>${order.return_request.return_window_days} days after delivery</span></div><p>Eligible until ${new Date(order.return_request.deadline).toLocaleDateString('en-BD')}</p></div>` : '')}
+                        <div class="detail-actions"><a class="premium-btn" href="/order-tracking/?id=${order.id}">Open Full Tracking</a><a class="premium-btn secondary" href="/invoice/?order_id=${order.id}">Download / Print Invoice</a>${order.status==='Delivered' ? `<button class="premium-btn secondary" onclick="buyAgain(${order.id})">Buy Again</button>` : ''}${order.return_request?.can_request ? `<button class="premium-btn return-btn" onclick="requestReturn(${order.id})">Request Return</button>` : ''}${order.return_request?.status==='Pending' ? `<button class="premium-btn danger" onclick="cancelReturnRequest(${order.id})">Cancel Return Request</button>` : ''}${order.can_cancel ? `<button class="premium-btn danger" onclick="cancelOrder(${order.id})">Cancel Order</button>` : ''}<button class="premium-btn secondary" onclick="loadOrders()">← Back to Orders</button></div>
+                    </div>`;
+                document.getElementById('ordersContainer').innerHTML = html;
+            } catch (error) {
+                console.error('Order detail error:', error);
+                showNotification(error.message || 'Error loading order details', 'error');
+            }
+        }
+
+        async function buyAgain(orderId) {
+            try {
+                const response = await fetch(`/api/orders/${orderId}/`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+                if (!response.ok) throw new Error('Could not load the previous order.');
+                const data = await response.json();
+                const items = data.items || [];
+                let added = 0, failed = [];
+                for (const item of items) {
+                    const r = await fetch('/api/cart/add/', { method:'POST', headers:{'Authorization':`Bearer ${TOKEN}`,'Content-Type':'application/json'}, body:JSON.stringify({product_id:item.product_id, quantity:item.quantity}) });
+                    const d = await r.json().catch(()=>({}));
+                    if (r.ok) added += item.quantity; else failed.push(d.error || item.name);
+                }
+                if (added) showNotification(`${added} item${added===1?'':'s'} added to your bag.`, 'success');
+                if (failed.length) showNotification(`${failed.length} item${failed.length===1?'':'s'} could not be added because availability or price may have changed.`, 'error');
+                if (added) setTimeout(()=>window.location.href='/cart/',500);
+            } catch (error) { showNotification(error.message || 'Buy Again failed', 'error'); }
+        }
+
+        async function cancelOrder(orderId) {
+            const reason = window.prompt('Why would you like to cancel this order?', 'Customer requested cancellation');
+            if (reason === null) return;
+            try {
+                const response = await fetch(`/api/orders/${orderId}/cancel/`, { method:'POST', headers:{'Authorization':`Bearer ${TOKEN}`,'Content-Type':'application/json'}, body:JSON.stringify({reason:reason.trim() || 'Customer requested cancellation'}) });
+                const data = await response.json().catch(()=>({}));
+                if (!response.ok) throw new Error(data.error || 'Failed to cancel order');
+                showNotification('Order cancelled successfully', 'success');
+                await loadOrders();
+            } catch (error) { console.error('Cancel order error:', error); showNotification(error.message || 'Error cancelling order', 'error'); }
+        }
+
+        // ==============================================================================
+        // RETURNS
+        // ==============================================================================
+
+        function returnStatusClass(status) { return String(status || 'pending').toLowerCase(); }
+
+        function returnStatusLabel(status) {
+            const labels = { Pending: 'Under review', Approved: 'Approved', Rejected: 'Rejected', Received: 'Return received', Refunded: 'Refund issued', Cancelled: 'Cancelled' };
+            return labels[status] || status || 'Pending';
+        }
+
+        async function loadReturns() {
+            const container = document.getElementById('returnsContainer');
+            if (!container) return;
+            container.innerHTML = '<div class="loader"></div>';
+            try {
+                const response = await fetch('/api/orders/returns/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(data.error || 'Failed to load returns');
+                const returns = data.returns || [];
+                if (!returns.length) {
+                    container.innerHTML = `<div class="return-empty"><div class="premium-empty-icon">↩</div><h3>No return requests yet</h3><p>When an eligible order is delivered, you can request a return directly from its order details.</p><button class="premium-btn" onclick="showSection('orders', document.querySelector('.nav-item[onclick*=\"orders\"]'))">View My Orders</button></div>`;
+                    return;
+                }
+                container.innerHTML = returns.map(r => `
+                    <article class="return-card">
+                        <div class="return-card-top"><div><span class="return-order">${safeText(r.order_number)}</span><div class="return-date">Requested ${new Date(r.requested_at).toLocaleString('en-BD',{dateStyle:'medium',timeStyle:'short'})}</div></div><span class="return-status ${returnStatusClass(r.status)}">${safeText(returnStatusLabel(r.status))}</span></div>
+                        <div class="return-card-body"><div><div class="return-reason-label">Reason</div><div class="return-reason">${safeText(r.reason)}</div>${r.details ? `<p class="return-details">${safeText(r.details)}</p>` : ''}${r.admin_note ? `<p class="return-admin-note"><strong>Store note:</strong> ${safeText(r.admin_note)}</p>` : ''}</div><div class="return-refund"><span>Refund amount</span><strong>${money(r.refund_amount)}</strong><button class="premium-btn secondary" onclick="viewOrderDetail(${r.order_id})">Open Order</button></div></div>
+                    </article>`).join('');
+            } catch (error) {
+                container.innerHTML = `<div class="premium-empty"><h3>We couldn't load your returns</h3><p>${safeText(error.message)}</p><button class="premium-btn" onclick="loadReturns()">Try Again</button></div>`;
+            }
+        }
+
+        async function requestReturn(orderId) {
+            const modal = document.getElementById('returnModal');
+            const reason = document.getElementById('returnReason');
+            const details = document.getElementById('returnDetails');
+            document.getElementById('returnOrderId').value = orderId;
+            reason.value = '';
+            details.value = '';
+            modal.classList.add('open');
+            reason.focus();
+        }
+
+        function closeReturnModal() {
+            document.getElementById('returnModal')?.classList.remove('open');
+        }
+
+        async function submitReturnRequest() {
+            const orderId = document.getElementById('returnOrderId').value;
+            const reason = document.getElementById('returnReason').value;
+            const details = document.getElementById('returnDetails').value.trim();
+            const button = document.getElementById('submitReturnBtn');
+            if (!reason) { showNotification('Please select a return reason.', 'error'); return; }
+            button.disabled = true;
+            button.textContent = 'Submitting…';
+            try {
+                const response = await fetch(`/api/orders/${orderId}/return/`, { method:'POST', headers:{'Authorization':`Bearer ${TOKEN}`,'Content-Type':'application/json'}, body:JSON.stringify({reason, details}) });
+                const data = await response.json().catch(()=>({}));
+                if (!response.ok) throw new Error(data.error || 'Unable to submit return request');
+                closeReturnModal();
+                showNotification('Return request submitted successfully.', 'success');
+                await loadOrders();
+                if (document.getElementById('returns')?.classList.contains('active')) await loadReturns();
+            } catch (error) { showNotification(error.message || 'Return request failed', 'error'); }
+            finally { button.disabled = false; button.textContent = 'Submit Return Request'; }
+        }
+
+        async function cancelReturnRequest(orderId) {
+            if (!confirm('Cancel this return request?')) return;
+            try {
+                const response = await fetch(`/api/orders/${orderId}/return/`, { method:'DELETE', headers:{'Authorization':`Bearer ${TOKEN}`} });
+                const data = await response.json().catch(()=>({}));
+                if (!response.ok) throw new Error(data.error || 'Unable to cancel return request');
+                showNotification('Return request cancelled.', 'success');
+                await loadReturns();
+                await viewOrderDetail(orderId);
+            } catch (error) { showNotification(error.message || 'Unable to cancel return request', 'error'); }
+        }
+
+        // ==============================================================================
+        // REVIEWS
+        // ==============================================================================
+
+        async function loadReviews() {
+            try {
+                const response = await fetch(`${API_BASE}/reviews/`, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load reviews');
+
+                const data = await response.json();
+
+                const html = data.reviews.length > 0 ?
+                    data.reviews.map(review => `
+                        <div class="review-card">
+                            <div class="review-header">
+                                <span class="review-product">${safeText(review.product_name)}</span>
+                                <span class="review-rating">${review.rating}★</span>
+                            </div>
+                            <div class="review-verified">${review.is_verified_purchase ? "✓ Verified purchase" : "Customer review"}</div>
+                            <p class="review-text">${safeText(review.comment)}</p>
+                            <p class="review-date">${new Date(review.created_at).toLocaleDateString()}</p>
+                            <div>
+                                <button class="btn btn-secondary" onclick="editReview(${review.id})" style="font-size: 11px; padding: 6px 12px;">Edit</button>
+                                <button class="btn btn-danger" onclick="deleteReview(${review.id})" style="font-size: 11px; padding: 6px 12px; margin-left: 5px;">Delete</button>
+                            </div>
+                        </div>
+                    `).join('') :
+                    '<div class="empty-state"><div class="empty-state-title">No reviews yet</div><p>Reviews you write will appear here</p></div>';
+
+                document.getElementById('reviewsContainer').innerHTML = html;
+
+            } catch (error) {
+                console.error('Reviews error:', error);
+                showNotification('Error loading reviews', 'error');
+            }
+        }
+
+        async function deleteReview(reviewId) {
+            if (!confirm('Are you sure you want to delete this review?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/reviews/${reviewId}/delete/`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to delete review');
+
+                showNotification('Review deleted successfully', 'success');
+                await loadReviews();
+
+            } catch (error) {
+                console.error('Delete review error:', error);
+                showNotification('Error deleting review', 'error');
+            }
+        }
+
+        // ==============================================================================
+        // WISHLIST
+        // ==============================================================================
+
+        async function loadWishlist() {
+            const container = document.getElementById('wishlistContainer');
+            if (!container) return;
+            container.innerHTML = '<div class="loader"></div>';
+            try {
+                const response = await fetch(`${API_BASE}/wishlist/`, { headers:{'Authorization':`Bearer ${TOKEN}`} });
+                const data = await response.json().catch(()=>({}));
+                if (!response.ok) throw new Error(data.error || 'Failed to load wishlist');
+                const items = data.wishlist_items || [];
+                if (!items.length) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❤️</div><div class="empty-state-title">No items in your wishlist</div><div class="empty-state-text">Add items to your wishlist to save them for later.</div><a href="/shop/" class="btn btn-primary">Continue Shopping</a></div>';
+                    return;
+                }
+                container.innerHTML = `<div class="wishlist-grid-premium">${items.map(item => `<article class="wishlist-card-premium"><div class="wishlist-image-wrap">${item.image ? `<img src="${safeText(productImage(item.image))}" alt="${safeText(item.name)}" onerror="this.style.display='none'">` : '<span>✦</span>'}</div><div class="wishlist-card-body"><div class="wishlist-brand">${safeText(item.brand)}</div><h3>${safeText(item.name)}</h3><strong>${money(item.price)}</strong><div class="wishlist-actions"><a class="premium-btn" href="/product/${item.product_id}/">View Product</a><button class="premium-btn danger" onclick="removeWishlist(${item.product_id})">Remove</button></div></div></article>`).join('')}</div>`;
+            } catch (error) { container.innerHTML = `<div class="premium-empty"><h3>We couldn't load your wishlist</h3><p>${safeText(error.message)}</p><button class="premium-btn" onclick="loadWishlist()">Try Again</button></div>`; }
+        }
+
+        async function removeWishlist(productId) {
+            try {
+                const response = await fetch(`${API_BASE}/wishlist/${productId}/remove/`, {method:'DELETE', headers:{'Authorization':`Bearer ${TOKEN}`}});
+                const data = await response.json().catch(()=>({}));
+                if (!response.ok) throw new Error(data.error || 'Unable to remove item');
+                showNotification('Removed from wishlist.', 'success');
+                await loadWishlist();
+            } catch (error) { showNotification(error.message || 'Unable to remove wishlist item', 'error'); }
+        }
+
+        // ==============================================================================
+        // REVIEWS EDIT
+        // ==============================================================================
+
+        async function editReview(reviewId) {
+            const card = document.querySelector(`button[onclick="editReview(${reviewId})"]`)?.closest('.review-card');
+            const currentRating = card?.querySelector('.review-rating')?.textContent?.match(/\d+/)?.[0] || '5';
+            const currentComment = card?.querySelector('.review-text')?.textContent || '';
+            const rating = window.prompt('Rating (1-5):', currentRating);
+            if (rating === null) return;
+            const numericRating = Number(rating);
+            if (!Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5) { showNotification('Rating must be between 1 and 5.', 'error'); return; }
+            const comment = window.prompt('Your review:', currentComment);
+            if (comment === null) return;
+            try {
+                const response = await fetch(`${API_BASE}/reviews/${reviewId}/update/`, {method:'PUT', headers:{'Authorization':`Bearer ${TOKEN}`,'Content-Type':'application/json'}, body:JSON.stringify({rating:numericRating,comment})});
+                const data = await response.json().catch(()=>({}));
+                if (!response.ok) throw new Error(data.error || 'Failed to update review');
+                showNotification(data.message || 'Review updated successfully', 'success');
+                await loadReviews();
+            } catch (error) { showNotification(error.message || 'Error updating review', 'error'); }
+        }
+
+        // ==============================================================================
+        // ADDRESSES
+        // ==============================================================================
+
+        function toggleAddressForm(force) {
+            const el = document.getElementById('addressForm');
+            const show = typeof force === 'boolean' ? force : el.style.display === 'none';
+            el.style.display = show ? 'block' : 'none';
+        }
+
+        async function addAddress() {
+            const payload = {line1:document.getElementById('addrLine1').value.trim(),line2:document.getElementById('addrLine2').value.trim(),city:document.getElementById('addrCity').value.trim(),state:document.getElementById('addrState').value.trim(),postal_code:document.getElementById('addrPostal').value.trim(),country:document.getElementById('addrCountry').value.trim() || 'Bangladesh',default:document.getElementById('addrDefault').checked};
+            if (!payload.line1 || !payload.city) { showNotification('Address line 1 and city are required.', 'error'); return; }
+            try {
+                const response = await fetch(`${API_BASE}/addresses/`, {method:'POST',headers:{'Authorization':`Bearer ${TOKEN}`,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+                const data = await response.json().catch(()=>({}));
+                if (!response.ok) throw new Error(data.error || 'Failed to save address');
+                showNotification(data.message || 'Address added successfully', 'success');
+                document.querySelectorAll('#addressForm input').forEach(el=>{if(el.type==='checkbox')el.checked=false;else if(el.id!=='addrCountry')el.value='';});
+                toggleAddressForm(false);
+                await loadAddresses();
+            } catch (error) { showNotification(error.message || 'Error adding address', 'error'); }
+        }
+
+        async function loadAddresses() {
+            try {
+                const response = await fetch(`${API_BASE}/addresses/`, {headers:{'Authorization':`Bearer ${TOKEN}`}});
+                const data = await response.json().catch(()=>({}));
+                if (!response.ok) throw new Error(data.error || 'Failed to load addresses');
+                const html = data.addresses?.length ? `<div class="address-grid-premium">${data.addresses.map(addr => `<article class="address-card-premium ${addr.default ? 'default' : ''}"><div class="address-card-head"><span>${addr.default ? 'DEFAULT ADDRESS' : 'SAVED ADDRESS'}</span>${addr.default ? '<b>✓</b>' : ''}</div><h3>${safeText(addr.line1)}</h3><p>${safeText(addr.line2 || '')}${addr.line2 ? '<br>' : ''}${safeText(addr.city)}${addr.state ? ', '+safeText(addr.state):''}${addr.postal_code ? ' '+safeText(addr.postal_code):''}<br>${safeText(addr.country)}</p></article>`).join('')}</div>` : '<div class="empty-state"><div class="empty-state-title">No saved addresses</div><p>Add an address to speed up checkout.</p></div>';
+                document.getElementById('addressesContainer').innerHTML = html;
+            } catch (error) { document.getElementById('addressesContainer').innerHTML = `<div class="premium-empty"><h3>We couldn't load your addresses</h3><p>${safeText(error.message)}</p><button class="premium-btn" onclick="loadAddresses()">Try Again</button></div>`; }
+        }
+
+        // ==============================================================================
+        // ACTIVITY
+        // ==============================================================================
+
+        async function loadActivity() {
+            try {
+                const response = await fetch(`${API_BASE}/activity/`, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load activity');
+
+                const data = await response.json();
+
+                const html = data.activities.length > 0 ?
+                    data.activities.map(activity => `
+                        <div class="order-detail" style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <div>
+                                    <p><strong>${safeText(activity.action)}</strong></p>
+                                    <p style="color: #666;">${safeText(activity.details)}</p>
+                                </div>
+                                <p style="color: #999; font-size: 12px;">${new Date(activity.timestamp).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    `).join('') :
+                    '<div class="empty-state"><div class="empty-state-title">No activity</div></div>';
+
+                document.getElementById('activityContainer').innerHTML = html;
+
+            } catch (error) {
+                console.error('Activity error:', error);
+                showNotification('Error loading activity', 'error');
+            }
+        }
+
+        // ==============================================================================
+        // SETTINGS
+        // ==============================================================================
+
+        async function loadSettings() {
+            try {
+                const response = await fetch(`${API_BASE}/settings/`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+                const data = await response.json().catch(()=>({}));
+                if (!response.ok) throw new Error(data.error || 'Failed to load settings');
+                document.getElementById('notifOrders').checked = data.notifications?.order_updates !== false;
+                document.getElementById('notifPromo').checked = data.notifications?.promotional === true;
+                document.getElementById('notifReviews').checked = data.notifications?.reviews !== false;
+                document.getElementById('notifWishlist').checked = data.notifications?.wishlist_items !== false;
+            } catch (error) { showNotification(error.message || 'Error loading settings', 'error'); }
+        }
+
+        async function updateSettings() {
+            try {
+                const response = await fetch(`${API_BASE}/settings/`, {
+                    method: 'PUT', headers: {'Authorization': `Bearer ${TOKEN}`, 'Content-Type':'application/json'},
+                    body: JSON.stringify({notifications:{order_updates:document.getElementById('notifOrders').checked,promotional:document.getElementById('notifPromo').checked,reviews:document.getElementById('notifReviews').checked,wishlist_items:document.getElementById('notifWishlist').checked}})
+                });
+                const data = await response.json().catch(()=>({}));
+                if (!response.ok) throw new Error(data.error || 'Failed to update settings');
+                showNotification(data.message || 'Settings updated successfully', 'success');
+            } catch (error) { showNotification(error.message || 'Error updating settings', 'error'); }
+        }
+
+        // ==============================================================================
+        // UTILITIES
+        // ==============================================================================
+
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notifications');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <span>${safeText(message)}</span>
+                <button onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 18px;">×</button>
+            `;
+            container.appendChild(notification);
+
+            setTimeout(() => notification.remove(), 4000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>

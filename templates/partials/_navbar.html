@@ -1,0 +1,87 @@
+{% load static %}
+<!-- ░░ NAVBAR ░░ -->
+<header id="navbar">
+  <div class="nav-inner">
+    <!-- Left nav links -->
+    <nav class="nav-group nav-left" aria-label="Primary navigation left">
+      <a href="/shop/" class="nav-link" data-section="shop">Shop</a>
+      <a href="/#decants" class="nav-link" data-section="decants">Decants</a>
+      <a href="/#brands" class="nav-link" data-section="brands">Brands</a>
+    </nav>
+
+    <!-- Center logo -->
+    <a href="/" class="nav-logo" aria-label="The Last Note home">
+      <span class="logo-the">The</span>
+      <span class="logo-main">Last Note</span>
+    </a>
+
+    <!-- Right nav links -->
+    <nav class="nav-group nav-right" aria-label="Primary navigation right">
+      <a href="/#how" class="nav-link" data-section="how">How It Works</a>
+      <a href="/customer/" class="nav-link">Track Order</a>
+
+      <!-- Search -->
+      <div class="nav-search-wrap">
+        <button class="nav-search-trigger" aria-label="Open search" id="searchTrigger">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <div class="nav-search-dropdown" id="searchDropdown" aria-hidden="true">
+          <div class="search-bar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="search" id="searchInput" placeholder="Search fragrances, brands..." autocomplete="off" aria-label="Search"/>
+            <button class="search-close-btn" id="searchCloseBtn" aria-label="Close search">&times;</button>
+          </div>
+          <div class="search-results" id="searchResults"></div>
+        </div>
+      </div>
+
+      <!-- Login / Register -->
+      <button class="nav-auth-btn" onclick="showLoginModal()" style="background: none; border: none; padding: 0 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 400; color: #333; font-size: 13px; transition: color 0.3s;" aria-label="Login">Login</button>
+      <button class="nav-auth-btn" onclick="showRegisterModal()" style="background: none; border: none; padding: 0 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 400; color: #333; font-size: 13px; transition: color 0.3s;" aria-label="Register">Register</button>
+
+      <!-- Account -->
+      <button class="nav-icon-btn account-btn" id="accountBtn" aria-label="My account" onclick="handleAccountClick()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+
+      <!-- Cart -->
+      <button class="nav-icon-btn cart-btn" aria-label="Cart" id="cartBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="cart-badge" id="cartBadge">0</span>
+      </button>
+
+      <!-- Hamburger (mobile only) -->
+      <button class="nav-hamburger" id="navHamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNavPanel">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- ░░ MOBILE NAV PANEL ░░ -->
+<div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+<nav class="mobile-nav-panel" id="mobileNavPanel" aria-hidden="true" aria-label="Mobile navigation">
+  <a href="/shop/" class="mobile-nav-link" data-section="shop">Shop</a>
+  <a href="/#decants" class="mobile-nav-link" data-section="decants">Decants</a>
+  <a href="/#brands" class="mobile-nav-link" data-section="brands">Brands</a>
+  <a href="/#how" class="mobile-nav-link" data-section="how">How It Works</a>
+  <a href="/customer/" class="mobile-nav-link">Track Order</a>
+  <div class="mobile-nav-divider"></div>
+  <button class="mobile-nav-link" onclick="showLoginModal()">Login</button>
+  <button class="mobile-nav-link" onclick="showRegisterModal()">Register</button>
+</nav>
+
+
+<script>
+/* Canonical account navigation used by the shared navbar. */
+window.handleAccountClick = function () {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+        window.location.href = '/dashboard/';
+    } else if (typeof window.showLoginModal === 'function') {
+        window.showLoginModal();
+    } else {
+        window.location.href = '/';
+    }
+};
+</script>

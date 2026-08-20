@@ -1,0 +1,116 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout · The Last Note</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/checkout-premium.css' %}">
+</head>
+<body>
+<div class="co-page">
+  <header class="co-top">
+    <a class="co-brand" href="/" aria-label="The Last Note home">
+      <span class="co-brand-mark">
+        <svg width="30" height="40" viewBox="0 0 30 40" fill="none" aria-hidden="true">
+          <path d="M10 10h10v25c0 2.2-1.8 4-4 4h-2c-2.2 0-4-1.8-4-4V10Z" fill="#d7b05e" stroke="#9d742b"/>
+          <path d="M12 5h6v5h-6z" fill="#8c6429"/><path d="M9 13h12" stroke="#f5df9b" stroke-width="1.5" opacity=".8"/>
+          <path d="M12 2h6v3h-6z" fill="#6d4b22"/>
+        </svg>
+      </span>
+      <span><span class="co-brand-name">THE LAST NOTE</span><span class="co-brand-sub">Luxury Perfumes</span></span>
+    </a>
+    <div class="co-trust">
+      <div class="co-trust-item"><span class="co-trust-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20 6v5c0 5-3.2 8.4-8 10-4.8-1.6-8-5-8-10V6l8-3Z" stroke="currentColor"/><path d="m8.5 12 2.2 2.2 4.8-5" stroke="currentColor"/></svg></span><span><b class="co-trust-title">100% Secure</b><span class="co-trust-sub">SSL Encrypted</span></span></div>
+      <div class="co-trust-item"><span class="co-trust-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z" stroke="currentColor"/><circle cx="7" cy="18" r="2" stroke="currentColor"/><circle cx="18" cy="18" r="2" stroke="currentColor"/></svg></span><span><b class="co-trust-title">Free Delivery</b><span class="co-trust-sub">Complimentary delivery</span></span></div>
+      <div class="co-trust-item"><span class="co-trust-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13a7 7 0 0 1 14 0v4H5z" stroke="currentColor"/><path d="M5 15H3v3h2m14-3h2v3h-2M9 20h6" stroke="currentColor"/></svg></span><span><b class="co-trust-title">24/7 Support</b><span class="co-trust-sub">We're here for you</span></span></div>
+    </div>
+  </header>
+
+  <div class="co-shell">
+    <aside class="co-side">
+      <nav class="co-nav" aria-label="Store navigation">
+        <a href="/"><svg viewBox="0 0 24 24" fill="none"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z" stroke="currentColor"/></svg><span>Home</span></a>
+        <a href="/shop/"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6h6l1 14H8L9 6Zm1 0V4a2 2 0 0 1 4 0v2" stroke="currentColor"/></svg><span>Shop</span></a>
+        <a href="/cart/"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5h2l2 10h9l3-7H7" stroke="currentColor"/><circle cx="10" cy="19" r="1.5" stroke="currentColor"/><circle cx="17" cy="19" r="1.5" stroke="currentColor"/></svg><span>Cart</span><span class="co-cart-count" id="cartCount">0</span></a>
+        <a href="/customer/"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor"/><path d="M5 20c.8-3.5 3.1-5.5 7-5.5s6.2 2 7 5.5" stroke="currentColor"/></svg><span>My Account</span></a>
+      </nav>
+      <div class="co-side-rule"></div>
+      <div class="co-benefits">
+        <div class="co-benefit"><span class="co-benefit-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 19 6v5c0 4.4-2.7 7.5-7 9-4.3-1.5-7-4.6-7-9V6l7-3Z" stroke="currentColor"/><path d="m8.5 12 2 2 5-5" stroke="currentColor"/></svg></span><span><strong>Premium Quality</strong><span>Finest ingredients</span></span></div>
+        <div class="co-benefit"><span class="co-benefit-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor"/><path d="M12 7v5l3 2" stroke="currentColor"/></svg></span><span><strong>Long Lasting</strong><span>Up to 12h+</span></span></div>
+        <div class="co-benefit"><span class="co-benefit-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20 7v5c0 4.7-3 7.9-8 9-5-1.1-8-4.3-8-9V7l8-4Z" stroke="currentColor"/><path d="m8 12 2.5 2.5L16 9" stroke="currentColor"/></svg></span><span><strong>Authentic</strong><span>100% Original</span></span></div>
+      </div>
+      <div class="co-promo"><h3>Luxury in Every Note</h3><p>Discover timeless fragrances crafted for every moment.</p><a href="/shop/">Shop Now →</a></div>
+    </aside>
+
+    <main class="co-main">
+      <div class="co-heading">
+        <h1>Checkout</h1>
+        <div class="co-heading-line"><span></span><b>♙</b><span></span></div>
+      </div>
+      <div class="co-alert" id="checkoutAlert" role="alert"></div>
+
+      <div class="co-grid">
+        <form class="co-card co-form-card" id="checkoutForm" novalidate>
+          <section class="co-section">
+            <h2 class="co-section-title"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor"/><path d="M5 20c.8-3.5 3.1-5.5 7-5.5s6.2 2 7 5.5" stroke="currentColor"/></svg>Customer Information</h2>
+            <div class="co-field"><label class="co-label" for="name">Full Name <span class="co-required">*</span></label><input class="co-input" id="name" autocomplete="name" required></div>
+            <div class="co-row"><div class="co-field"><label class="co-label" for="email">Email <span class="co-required">*</span></label><input class="co-input" type="email" id="email" autocomplete="email" required></div><div class="co-field"><label class="co-label" for="phone">Phone <span class="co-required">*</span></label><input class="co-input" id="phone" autocomplete="tel" required></div></div>
+          </section>
+
+          <section class="co-section">
+            <h2 class="co-section-title"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z" stroke="currentColor"/><circle cx="12" cy="10" r="2.3" stroke="currentColor"/></svg>Shipping Address</h2>
+            <div id="savedAddresses"></div>
+            <div class="co-field"><label class="co-label" for="address">Address Line <span class="co-required">*</span></label><textarea class="co-textarea" id="address" placeholder="House, road, area" required></textarea></div>
+            <div class="co-row"><div class="co-field"><label class="co-label" for="city">City <span class="co-required">*</span></label><input class="co-input" id="city" required></div><div class="co-field"><label class="co-label" for="state">State / Division <span class="co-required">*</span></label><input class="co-input" id="state"></div></div>
+            <div class="co-row"><div class="co-field"><label class="co-label" for="postalCode">Postal Code <span class="co-required">*</span></label><input class="co-input" id="postalCode" autocomplete="postal-code"></div><div class="co-field"><label class="co-label" for="country">Country <span class="co-required">*</span></label><input class="co-input" id="country" value="Bangladesh" autocomplete="country-name"></div></div>
+          </section>
+
+          <section class="co-section">
+            <h2 class="co-section-title"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="13" rx="2" stroke="currentColor"/><path d="M3 10h18M7 15h4" stroke="currentColor"/></svg>Payment</h2>
+            <label class="co-payment"><input type="radio" checked disabled><span><strong>Cash on Delivery</strong><span>Pay safely when your fragrance arrives.</span></span></label>
+          </section>
+
+          <button type="submit" class="co-submit" id="submitBtn"><span class="spinner"></span><span class="submit-text"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="vertical-align:-3px;margin-right:5px"><path d="M12 3 20 7v5c0 4.7-3 7.9-8 9-5-1.1-8-4.3-8-9V7l8-4Z" stroke="currentColor"/><path d="m8 12 2.5 2.5L16 9" stroke="currentColor"/></svg>Place Order</span></button>
+          <p class="co-secure"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 19 6v5c0 4.4-2.7 7.5-7 9-4.3-1.5-7-4.6-7-9V6l7-3Z" stroke="currentColor"/><path d="m8.5 12 2 2 5-5" stroke="currentColor"/></svg>Your order is safe and secure</p>
+        </form>
+
+        <aside class="co-card co-summary">
+          <h2 class="co-summary-title"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16v13H4zM7 7V5a5 5 0 0 1 10 0v2" stroke="currentColor"/></svg>Order Summary</h2>
+          <div class="co-items" id="orderItems"></div>
+          <div class="co-totals">
+            <div class="co-total-row"><span>Subtotal</span><span id="subtotal">৳0.00</span></div>
+            <div class="co-total-row"><span>Shipping</span><span id="shipping">Free</span></div>
+            <div class="co-total-row total"><span>Total</span><strong id="total">৳0.00</strong></div>
+          </div>
+          <div class="co-note"><strong>⌑ Secure Checkout</strong><span>Your payment information is protected and your final price is calculated securely by the server.</span></div>
+          <div class="co-benefit-strip">
+            <div class="co-strip"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z" stroke="currentColor"/><circle cx="7" cy="18" r="2" stroke="currentColor"/><circle cx="18" cy="18" r="2" stroke="currentColor"/></svg><span><strong>Free Delivery</strong><span>Complimentary delivery</span></span></div>
+            <div class="co-strip"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 1 0 14.5-4.6" stroke="currentColor"/><path d="M20 4v6h-6" stroke="currentColor"/></svg><span><strong>Easy Returns</strong><span>7-day return policy</span></span></div>
+            <div class="co-strip"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20 7v5c0 4.7-3 7.9-8 9-5-1.1-8-4.3-8-9V7l8-4Z" stroke="currentColor"/><path d="m8 12 2.5 2.5L16 9" stroke="currentColor"/></svg><span><strong>Secure Payment</strong><span>100% secure checkout</span></span></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="co-success" id="successOverlay" aria-live="polite" aria-modal="true" role="dialog">
+  <div class="co-success-card">
+    <div class="co-success-mark">✓</div>
+    <div class="co-success-eyebrow">The Last Note · Order Confirmed</div>
+    <h2>Order Confirmed</h2>
+    <p>Thank you for your purchase. Your fragrance order has been received successfully.</p>
+    <div class="co-success-order" id="successOrder">Order confirmed</div>
+    <p id="successTotal" style="margin-top:5px"></p>
+    <a class="co-success-home" href="/">Return to Home</a>
+  </div>
+</div>
+<script src="{% static 'js/checkout-premium.js' %}"></script>
+</body>
+</html>

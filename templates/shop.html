@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shop All Fragrances — The Last Note</title>
+  <meta name="description" content="Browse authentic perfume decants and full bottles. Filter by brand, price, concentration, size, gender, and season."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+  <link rel="stylesheet" href="{% static 'css/shop.css' %}"/>
+</head>
+<body>
+
+  <!-- ░░ TOAST ░░ -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Product quick-view modal (shared behavior with home page) -->
+  <div class="product-modal" id="productModal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="pm-panel">
+      <button class="pm-close" aria-label="Close" data-modal-close>&times;</button>
+      <div class="pm-body" id="productModalBody"></div>
+    </div>
+  </div>
+
+  {% include 'partials/_navbar.html' %}
+  
+  <!-- CART SIDEBAR -->
+  {% include 'cart_sidebar_include.html' %}
+
+  <!-- ░░ SHOP LAYOUT ░░ -->
+  <div class="shop-layout">
+
+    <div class="shop-heading">
+      <h1>Shop All Fragrances</h1>
+      <p>Authentic decants and full bottles, every one batch-traced to its source.</p>
+    </div>
+
+    <!-- Mobile-only filters toggle -->
+    <button class="mobile-filters-toggle" id="mobileFiltersToggle">
+      <span>Filters</span>
+      <span id="mobileFiltersChevron">▾</span>
+    </button>
+
+    <!-- ░░ SIDEBAR ░░ -->
+    <aside class="shop-sidebar" id="shopSidebar">
+      <div class="sidebar-header">
+        <h2>Filters</h2>
+        <button class="clear-filters-btn" id="clearFiltersBtn">Clear all</button>
+      </div>
+
+      <!-- Brand -->
+      <div class="filter-group">
+        <p class="filter-group-title">Brand</p>
+        <div id="brandFilterList">
+          <!-- Populated by JS from /api/catalog/brands/ -->
+        </div>
+      </div>
+
+      <!-- Price Range -->
+      <div class="filter-group">
+        <p class="filter-group-title">Price Range (৳)</p>
+        <div class="price-range-row">
+          <input type="number" id="minPriceInput" placeholder="Min" min="0"/>
+          <span>–</span>
+          <input type="number" id="maxPriceInput" placeholder="Max" min="0"/>
+        </div>
+        <button class="apply-price-btn" id="applyPriceBtn">Apply</button>
+      </div>
+
+      <!-- Size: Decant vs Full -->
+      <div class="filter-group">
+        <p class="filter-group-title">Size</p>
+        <label class="filter-option">
+          <input type="radio" name="product_type" value="" checked/> All Sizes
+        </label>
+        <label class="filter-option">
+          <input type="radio" name="product_type" value="decant"/> Decants Only
+        </label>
+        <label class="filter-option">
+          <input type="radio" name="product_type" value="full_size"/> Full-Size Only
+        </label>
+      </div>
+
+      <!-- Concentration -->
+      <div class="filter-group">
+        <p class="filter-group-title">Concentration</p>
+        <label class="filter-option"><input type="checkbox" name="concentration" value="EDT"/> EDT</label>
+        <label class="filter-option"><input type="checkbox" name="concentration" value="EDP"/> EDP</label>
+        <label class="filter-option"><input type="checkbox" name="concentration" value="Parfum"/> Parfum</label>
+        <label class="filter-option"><input type="checkbox" name="concentration" value="EDC"/> EDC</label>
+      </div>
+
+      <!-- Gender -->
+      <div class="filter-group">
+        <p class="filter-group-title">Gender</p>
+        <label class="filter-option"><input type="checkbox" name="gender" value="Male"/> Male</label>
+        <label class="filter-option"><input type="checkbox" name="gender" value="Female"/> Female</label>
+        <label class="filter-option"><input type="checkbox" name="gender" value="Unisex"/> Unisex</label>
+      </div>
+
+      <!-- Season -->
+      <div class="filter-group">
+        <p class="filter-group-title">Season</p>
+        <label class="filter-option"><input type="checkbox" name="season" value="Spring"/> Spring</label>
+        <label class="filter-option"><input type="checkbox" name="season" value="Summer"/> Summer</label>
+        <label class="filter-option"><input type="checkbox" name="season" value="Fall"/> Fall</label>
+        <label class="filter-option"><input type="checkbox" name="season" value="Winter"/> Winter</label>
+        <label class="filter-option"><input type="checkbox" name="season" value="All Season"/> All Season</label>
+      </div>
+    </aside>
+
+    <!-- ░░ MAIN: TOOLBAR + GRID + PAGINATION ░░ -->
+    <main class="shop-main">
+      <div class="shop-toolbar">
+        <span id="resultsCount">Loading products…</span>
+      </div>
+
+      <div class="active-filter-chips" id="activeFilterChips"></div>
+
+      <div class="shop-grid" id="shopGrid">
+        <div class="shop-loading">Loading fragrances…</div>
+      </div>
+
+      <div class="shop-pagination" id="shopPagination"></div>
+    </main>
+  </div>
+
+  {% include 'partials/_footer.html' %}
+  {% include 'partials/_auth_modals.html' %}
+
+  <script src="{% static 'js/script.js' %}"></script>
+  <script src="{% static 'js/product-links.js' %}"></script>
+  <script src="{% static 'js/shop.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!-- CART SIDEBAR - Auto Include -->
+<div id="cartOverlay" class="cart-overlay"></div>
+<div id="cartSidebar" class="cart-sidebar">
+    <div class="cart-header">
+        <h2>Your Cart</h2>
+        <button class="cart-close" id="cartClose">&times;</button>
+    </div>
+    <div class="cart-content">
+        <div id="cartItemsContainer" class="cart-items">
+            <div class="cart-empty">
+                <p>Your cart is empty</p>
+                <a href="/shop/">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+    <div id="cartFooter" class="cart-footer" style="display:none;">
+        <div class="cart-summary">
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span id="cartSubtotal">৳0</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping:</span>
+                <span>Free</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total:</span>
+                <span id="cartTotal">৳0</span>
+            </div>
+        </div>
+        <div class="cart-actions">
+             <button class="btn-checkout" onclick="window.location.href='/checkout/'">Proceed to Checkout</button>
+             <button class="btn-continue" onclick="window.location.href='/cart/'">View Cart</button>
+             <button class="btn-continue" onclick="window.cartManager.closeSidebar()">Continue Shopping</button>
+         </div>
+    </div>
+</div>
+
+<style>
+.cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 998; display: none; opacity: 0; transition: opacity 0.3s ease; }
+.cart-overlay.active { display: block; opacity: 1; }
+.cart-sidebar { position: fixed; right: 0; top: 0; width: 450px; height: 100vh; background: white; z-index: 999; display: flex; flex-direction: column; box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1); transform: translateX(100%); transition: transform 0.3s ease; }
+.cart-sidebar.active { transform: translateX(0); }
+.cart-header { padding: 25px; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.cart-header h2 { margin: 0; font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 400; color: #1a1a2e; letter-spacing: 0.5px; }
+.cart-close { background: none; border: none; font-size: 32px; cursor: pointer; color: #999; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transition: color 0.3s; }
+.cart-close:hover { color: #333; }
+.cart-content { flex: 1; overflow-y: auto; padding: 0; }
+.cart-items { padding: 20px; }
+.cart-empty { text-align: center; padding: 60px 20px; color: #999; }
+.cart-empty p { margin: 0 0 20px 0; font-size: 14px; }
+.cart-empty a { display: inline-block; padding: 10px 20px; background: #1a1a2e; color: #d4af37; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: 500; }
+.cart-item { display: flex; gap: 15px; padding: 20px 0; border-bottom: 1px solid #e8e8e8; align-items: flex-start; }
+.cart-item:last-child { border-bottom: none; }
+.cart-item-image { width: 100px; height: 100px; background: #f5f5f5; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+.cart-item-image img { width: 100%; height: 100%; object-fit: cover; }
+.cart-item-details { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.cart-item-name { font-weight: 600; font-size: 14px; color: #1a1a2e; margin: 0; }
+.cart-item-variant { font-size: 12px; color: #999; }
+.cart-item-price { font-weight: 700; color: #d4af37; font-size: 14px; }
+.cart-item-qty-control { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.qty-btn { background: #f5f5f5; border: 1px solid #ddd; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600; color: #333; transition: all 0.2s; }
+.qty-btn:hover { background: #e8e8e8; border-color: #d4af37; color: #d4af37; }
+.qty-display { font-weight: 500; font-size: 14px; min-width: 20px; text-align: center; }
+.cart-item-remove { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 12px; font-weight: 500; padding: 0; transition: color 0.2s; margin-top: 8px; }
+.cart-item-remove:hover { color: #c0392b; }
+.cart-footer { border-top: 1px solid #e8e8e8; flex-shrink: 0; }
+.cart-summary { padding: 20px; background: #f9f9f9; }
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13px; color: #666; }
+.summary-row.total { font-size: 16px; font-weight: 700; color: #1a1a2e; border-top: 1px solid #ddd; margin-top: 12px; padding-top: 12px; }
+.summary-row.total span:last-child { color: #d4af37; }
+.cart-actions { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.btn-checkout { padding: 14px; background: #1a1a2e; color: #d4af37; border: none; border-radius: 4px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; }
+.btn-checkout:hover { background: #2d2d4a; transform: translateY(-1px); }
+.btn-continue { padding: 14px; background: white; color: #1a1a2e; border: 1px solid #ddd; border-radius: 4px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; }
+.btn-continue:hover { border-color: #d4af37; color: #d4af37; }
+@media (max-width: 768px) { .cart-sidebar { width: 100%; } }
+.cart-items::-webkit-scrollbar { width: 6px; }
+.cart-items::-webkit-scrollbar-track { background: #f1f1f1; }
+.cart-items::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 3px; }
+.cart-items::-webkit-scrollbar-thumb:hover { background: #c9a827; }
+</style>
+
+<script>
+/* Canonical quick-cart sidebar. The backend is the source of truth. */
+(function () {
+    const cartManager = window.cartManager || {};
+
+    const getAuthToken = () => localStorage.getItem('access_token');
+
+    cartManager.init = function () {
+        const cartBtn = document.getElementById('cartBtn');
+        const cartClose = document.getElementById('cartClose');
+        const cartOverlay = document.getElementById('cartOverlay');
+
+        if (cartBtn && !cartBtn.dataset.cartSidebarBound) {
+            cartBtn.dataset.cartSidebarBound = 'true';
+            cartBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                this.openSidebar();
+            });
+        }
+
+        if (cartClose && !cartClose.dataset.cartBound) {
+            cartClose.dataset.cartBound = 'true';
+            cartClose.addEventListener('click', () => this.closeSidebar());
+        }
+
+        if (cartOverlay && !cartOverlay.dataset.cartBound) {
+            cartOverlay.dataset.cartBound = 'true';
+            cartOverlay.addEventListener('click', () => this.closeSidebar());
+        }
+
+        this.loadCart();
+    };
+
+    cartManager.openSidebar = function () {
+        const sidebar = document.getElementById('cartSidebar');
+        const overlay = document.getElementById('cartOverlay');
+        if (!sidebar || !overlay) return;
+
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        this.loadCart();
+    };
+
+    cartManager.closeSidebar = function () {
+        const sidebar = document.getElementById('cartSidebar');
+        const overlay = document.getElementById('cartOverlay');
+        if (sidebar) sidebar.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    };
+
+    cartManager.loadCart = async function () {
+        const token = getAuthToken();
+        const badge = document.getElementById('cartBadge');
+
+        if (!token) {
+            if (badge) badge.textContent = '0';
+            this.showEmpty();
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/cart/', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status === 401) {
+                if (badge) badge.textContent = '0';
+                this.showEmpty();
+                return;
+            }
+
+            if (!response.ok) throw new Error(`Cart request failed: ${response.status}`);
+
+            const data = await response.json();
+
+            if (badge) badge.textContent = String(data.total_items || 0);
+
+            if (data.items && data.items.length > 0) {
+                this.renderCart(data.items, data);
+            } else {
+                this.showEmpty();
+            }
+        } catch (error) {
+            console.error('Cart sidebar load error:', error);
+            this.showEmpty();
+        }
+    };
+
+    cartManager.showEmpty = function () {
+        const container = document.getElementById('cartItemsContainer');
+        const footer = document.getElementById('cartFooter');
+        if (container) {
+            container.innerHTML = `
+                <div class="cart-empty">
+                    <p>Your cart is empty</p>
+                    <a href="/shop/">Continue Shopping</a>
+                </div>`;
+        }
+        if (footer) footer.style.display = 'none';
+    };
+
+    cartManager.renderCart = function (items, data) {
+        const container = document.getElementById('cartItemsContainer');
+        const footer = document.getElementById('cartFooter');
+        if (!container) return;
+
+        const money = (value) => `৳${Number(value || 0).toLocaleString('en-BD', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        })}`;
+
+        const imageUrl = (image) => {
+            if (!image) return '/static/images/placeholder.jpg';
+            if (/^https?:\/\//i.test(image) || image.startsWith('/')) return image;
+            return `/media/${image}`;
+        };
+
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        }[ch]));
+
+        container.innerHTML = items.map(item => `
+            <div class="cart-item" data-cart-item-id="${item.id}">
+                <div class="cart-item-image">
+                    <img src="${escapeHtml(imageUrl(item.image))}"
+                         alt="${escapeHtml(item.product_name)}"
+                         onerror="this.src='/static/images/placeholder.jpg'">
+                </div>
+                <div class="cart-item-details">
+                    <h3 class="cart-item-name">${escapeHtml(item.product_name)}</h3>
+                    <div class="cart-item-variant">${escapeHtml(item.brand || 'Fragrance')}</div>
+                    <div class="cart-item-price">${money(item.final_price ?? item.price)}</div>
+
+                    <div class="cart-item-qty-control">
+                        <button class="qty-btn" type="button"
+                                onclick="window.cartManager.updateQty(${item.id}, ${item.quantity - 1})"
+                                ${item.quantity <= 1 ? 'disabled' : ''}>−</button>
+                        <span class="qty-display">${item.quantity}</span>
+                        <button class="qty-btn" type="button"
+                                onclick="window.cartManager.updateQty(${item.id}, ${item.quantity + 1})">+</button>
+                    </div>
+
+                    <div style="font-size:12px;color:#666;">
+                        Item total: <strong>${money(item.subtotal)}</strong>
+                    </div>
+
+                    <button class="cart-item-remove" type="button"
+                            onclick="window.cartManager.removeItem(${item.id})">
+                        Remove
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        const subtotal = data.subtotal ?? data.total_price ?? 0;
+        const total = data.total_price ?? subtotal;
+
+        const subtotalEl = document.getElementById('cartSubtotal');
+        const totalEl = document.getElementById('cartTotal');
+        if (subtotalEl) subtotalEl.textContent = money(subtotal);
+        if (totalEl) totalEl.textContent = money(total);
+        if (footer) footer.style.display = 'block';
+    };
+
+    cartManager.updateQty = async function (id, qty) {
+        if (qty < 1) return;
+
+        const token = getAuthToken();
+        if (!token) {
+            if (typeof window.showLoginModal === 'function') window.showLoginModal();
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/cart/items/${id}/update/`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ quantity: qty })
+            });
+
+            if (!response.ok) throw new Error(`Update failed: ${response.status}`);
+            await this.loadCart();
+        } catch (error) {
+            console.error('Cart quantity update error:', error);
+            if (typeof window.showToast === 'function') window.showToast('Could not update quantity');
+        }
+    };
+
+    cartManager.removeItem = async function (id) {
+        const token = getAuthToken();
+        if (!token) return;
+
+        try {
+            const response = await fetch(`/api/cart/items/${id}/remove/`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error(`Remove failed: ${response.status}`);
+            await this.loadCart();
+        } catch (error) {
+            console.error('Cart remove error:', error);
+            if (typeof window.showToast === 'function') window.showToast('Could not remove item');
+        }
+    };
+
+    window.cartManager = cartManager;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => cartManager.init(), { once: true });
+    } else {
+        cartManager.init();
+    }
+})();
+</script>
